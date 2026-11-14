@@ -1,0 +1,1 @@
+"""Citation-validated Cosmic Narrator and Ask This Patch engine."""
