@@ -1,0 +1,1 @@
+"""Synthetic SPHEREx MEF generator matching verified DR1/QR3 HDU layout (V-04..V-08)."""
