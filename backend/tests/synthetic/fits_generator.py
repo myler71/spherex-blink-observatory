@@ -153,10 +153,10 @@ def generate_synthetic_dataset(
     ny = nx
     cos_dec = max(np.cos(np.deg2rad(scenario.center_dec)), 1e-4)
 
-    # Generate static stars inside inner 70% of FOV so rotated frames keep them
-    half_deg = scenario.fov_deg * 0.34
+    # Generate isolated static stars inside inner 72% of FOV so rotated frames keep them
+    half_deg = scenario.fov_deg * 0.36
     static_stars: list[dict[str, float]] = []
-    min_sep_deg = (3.5 * scenario.pixel_scale_arcsec) / 3600.0
+    min_sep_deg = (4.5 * scenario.pixel_scale_arcsec) / 3600.0
     attempts = 0
     while len(static_stars) < scenario.n_static_stars and attempts < 2000:
         attempts += 1
