@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "SPHEREx Blink Observatory Architecture",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "science-pipeline",
+        "label": "Astrophysics pipeline",
+        "focus": ["client", "gateway", "science", "cache", "irsa", "catalogs"],
+        "note": "Follow coordinate observation requests through WCS-WAVE calibration, SEP extraction, and multi-agency cross-matching."
+      },
+      {
+        "id": "narrative-flow",
+        "label": "AI narrative & validation",
+        "focus": ["gateway", "narrator", "db", "ads", "llm"],
+        "note": "Trace structured evidence assembly, LangGraph research planning, and deterministic claim validation."
+      },
+      {
+        "id": "storage-cache",
+        "label": "Storage & dual-mode cache",
+        "focus": ["gateway", "science", "narrator", "cache", "db"],
+        "note": "Inspect Redis cutouts caching, PostgreSQL pgvector persistence, and offline SQLite fallbacks."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Blink Explorer",
+      "sublabel": "Browser Web UI",
+      "pos": [40, 205],
+      "size": [130, 56],
+      "tag": "Interactive UI"
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "FastAPI Gateway",
+      "sublabel": "REST API :8000",
+      "pos": [240, 200],
+      "size": [140, 66],
+      "tag": "Async / GZip"
+    },
+    {
+      "id": "science",
+      "type": "backend",
+      "label": "Astrophysics Engine",
+      "sublabel": "WCS-WAVE / SEP / Astropy",
+      "pos": [460, 80],
+      "size": [170, 66],
+      "tag": "Deterministic"
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "CacheStore",
+      "sublabel": "Redis + Atomic Disk",
+      "pos": [700, 200],
+      "size": [140, 66],
+      "tag": "< 200ms p95"
+    },
+    {
+      "id": "narrator",
+      "type": "backend",
+      "label": "Cosmic Narrator",
+      "sublabel": "LangGraph + Validator",
+      "pos": [460, 320],
+      "size": [170, 66],
+      "tag": "Two-Brains AI"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL 16",
+      "sublabel": "pgvector + tsvector",
+      "pos": [700, 320],
+      "size": [140, 66],
+      "tag": "Relational + Vector"
+    },
+    {
+      "id": "irsa",
+      "type": "external",
+      "label": "NASA/IPAC IRSA",
+      "sublabel": "SPHEREx DR1/QR3 TAP",
+      "pos": [940, 50],
+      "size": [160, 56],
+      "tag": "MEF Cutouts"
+    },
+    {
+      "id": "catalogs",
+      "type": "external",
+      "label": "Catalog Archives",
+      "sublabel": "Gaia / AllWISE / SIMBAD",
+      "pos": [940, 150],
+      "size": [160, 56],
+      "tag": "Astrometry"
+    },
+    {
+      "id": "ads",
+      "type": "external",
+      "label": "NASA ADS",
+      "sublabel": "Harvard Astrophysics ADS",
+      "pos": [940, 250],
+      "size": [160, 56],
+      "tag": "Literature"
+    },
+    {
+      "id": "llm",
+      "type": "external",
+      "label": "LLM Provider",
+      "sublabel": "Template / OpenAI API",
+      "pos": [940, 410],
+      "size": [160, 56],
+      "tag": "Grounding"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "SPHEREx Blink Observatory Service",
+      "wraps": ["gateway", "science", "cache", "narrator", "db"]
+    },
+    {
+      "kind": "security-group",
+      "label": "External Astronomical Archives & AI Endpoints",
+      "wraps": ["irsa", "catalogs", "ads", "llm"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-to-gateway",
+      "from": "client",
+      "to": "gateway",
+      "label": "HTTP",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gateway-to-science",
+      "from": "gateway",
+      "to": "science",
+      "label": "observe",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "gateway-to-cache",
+      "from": "gateway",
+      "to": "cache",
+      "label": "lookup",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "gateway-to-narrator",
+      "from": "gateway",
+      "to": "narrator",
+      "label": "narrative",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "science-to-cache",
+      "from": "science",
+      "to": "cache",
+      "label": "cache cutouts",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "variant": "dashed"
+    },
+    {
+      "id": "science-to-irsa",
+      "from": "science",
+      "to": "irsa",
+      "label": "TAP cutouts",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "science-to-catalogs",
+      "from": "science",
+      "to": "catalogs",
+      "label": "cone overlays",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "narrator-to-db",
+      "from": "narrator",
+      "to": "db",
+      "label": "hybrid RAG",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "narrator-to-ads",
+      "from": "narrator",
+      "to": "ads",
+      "label": "query literature",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "narrator-to-llm",
+      "from": "narrator",
+      "to": "llm",
+      "label": "generate chapters",
+      "fromSide": "bottom",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Deterministic Astrophysics Engine",
+      "items": [
+        "WCS-WAVE per-pixel true wavelength calculation without LLM code",
+        "SEP sub-pixel centroiding, spherical 3D cKDTree linking, weighted PM"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Citation-Validated AI Narrator",
+      "items": [
+        "5-node LangGraph workflow decoupled from pixel delivery",
+        "Deterministic ClaimValidator enforces verified evidence IDs & numbers"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Multi-Agency & Offline Resilience",
+      "items": [
+        "NASA IRSA SPHEREx DR1/QR3, ESA Gaia DR3, AllWISE, SIMBAD, CADC NEOSSat",
+        "Redis + atomic filesystem cache (< 200 ms p95 for presets)"
+      ]
+    }
+  ]
+}
