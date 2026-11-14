@@ -222,6 +222,14 @@ def test_validator_accepts_grounded_story() -> None:
                 c.__setattr__("statement", "Object obj_002 is variable."),
             ),
         ),
+        (
+            "15_hyphenated_9th_planet_claim",
+            lambda c: c.__setattr__("statement", "Observed Planet-Nine at 10.39 arcsec/yr."),
+        ),
+        (
+            "16_scientific_notation_unverified_number",
+            lambda c: c.__setattr__("statement", "Source obj_001 flux is 1.5e9 Jy."),
+        ),
     ],
 )
 def test_validator_rejects_14_adversarial_drafts(case_name: str, mutator) -> None:

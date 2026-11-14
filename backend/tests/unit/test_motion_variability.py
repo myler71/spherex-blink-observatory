@@ -169,3 +169,48 @@ def test_variability_ignores_sloped_spectrum_but_flags_30pct_same_band_change(
     bins_slope, lc_slope, is_slope_var = compute_variability(slope_track, settings)
     assert is_slope_var is False
     assert all(not b.cross_band for b in bins_slope)
+
+
+def test_circular_ra_wrap_around_zero_degrees() -> None:
+    from app.science.detect import FrameDetection
+    from app.science.link import LinkedTrack
+
+    settings = Settings()
+    d1 = FrameDetection(
+        obs_id="f1",
+        mjd=60500.0,
+        iso_date=None,
+        detector=2,
+        x=20.0,
+        y=20.0,
+        ra=359.999,
+        dec=10.0,
+        flux=50.0,
+        flux_err=1.0,
+        snr=50.0,
+        centroid_err_px=0.08,
+        wavelength_um=1.3,
+        bandwidth_um=0.04,
+        contaminated=False,
+    )
+    d2 = FrameDetection(
+        obs_id="f2",
+        mjd=60865.25,
+        iso_date=None,
+        detector=2,
+        x=20.0,
+        y=20.0,
+        ra=0.001,
+        dec=10.0,
+        flux=50.0,
+        flux_err=1.0,
+        snr=50.0,
+        centroid_err_px=0.08,
+        wavelength_um=1.3,
+        bandwidth_um=0.04,
+        contaminated=False,
+    )
+    tr = LinkedTrack(track_id="wrap_obj", observations=[d1, d2])
+    m, _, _, _ = fit_motion(tr, 6.16, settings)
+    assert m.pm_total_arcsec_yr is not None
+    assert m.pm_total_arcsec_yr < 10.0

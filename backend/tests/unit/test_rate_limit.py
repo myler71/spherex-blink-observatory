@@ -33,3 +33,21 @@ def test_rate_limiter_returns_429_with_retry_after(tmp_path: Path) -> None:
         assert "Retry-After" in r3.headers
         body = r3.json()
         assert body["error"]["code"] == "RATE_LIMIT_EXCEEDED"
+
+
+def test_spoofed_x_forwarded_for_cannot_bypass_rate_limit(tmp_path: Path) -> None:
+    settings = Settings(cache_dir=str(tmp_path / "cache"), ask_rate_limit_per_min=1)
+    app = create_app(settings=settings)
+    with TestClient(app) as client:
+        r1 = client.post(
+            "/api/v1/observe/obs_missing/ask",
+            json={"question": "What is the fastest object?"},
+            headers={"X-Forwarded-For": "203.0.113.1"},
+        )
+        assert r1.status_code == 404
+        r2 = client.post(
+            "/api/v1/observe/obs_missing/ask",
+            json={"question": "What is the fastest object?"},
+            headers={"X-Forwarded-For": "203.0.113.2"},
+        )
+        assert r2.status_code == 429
