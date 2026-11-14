@@ -1,10 +1,15 @@
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-import uuid
 
 from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.config import Settings
 from app.schemas.candidates import CandidateCreate, CandidateRecord, CandidateVoteCreate
@@ -63,7 +68,9 @@ class DatabaseStore:
                         q_terms = {t.lower() for t in query.split() if len(t) > 2}
                         scored: list[dict[str, Any]] = []
                         for r in rows:
-                            id_hit = any(w in {i.lower() for i in r.object_identifiers} for w in wanted)
+                            id_hit = any(
+                                w in {i.lower() for i in r.object_identifiers} for w in wanted
+                            )
                             txt = f"{r.title} {r.chunk_text}".lower()
                             lex_hits = sum(1 for t in q_terms if t in txt)
                             if id_hit or lex_hits > 0:
@@ -162,9 +169,9 @@ class DatabaseStore:
 
         out: list[CandidateRecord] = []
         for c in self._in_memory_candidates.values():
-            counts: dict[str, int] = {}
+            mem_counts: dict[str, int] = {}
             for lbl in c["votes"].values():
-                counts[lbl] = counts.get(lbl, 0) + 1
+                mem_counts[lbl] = mem_counts.get(lbl, 0) + 1
             out.append(
                 self._to_record(
                     c["candidate_id"],
@@ -174,7 +181,7 @@ class DatabaseStore:
                     c["dec_deg"],
                     c["reason"],
                     c["created_at"],
-                    counts,
+                    mem_counts,
                 )
             )
         return out

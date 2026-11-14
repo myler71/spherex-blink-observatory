@@ -1,10 +1,11 @@
-from datetime import UTC, datetime
+import contextlib
 import hashlib
 import json
 import os
-from pathlib import Path
 import tempfile
 import time
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import redis
@@ -88,11 +89,8 @@ class CacheStore:
         ttl = ttl_seconds if ttl_seconds is not None else self.settings.cache_ttl_seconds
         full_key = f"{namespace}:{key}"
         if self._redis is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._redis.setex(full_key, ttl, json.dumps(value))
-            except Exception:
-                pass
-
         p = self._json_path(namespace, key)
         envelope = {
             "cached_at": datetime.now(UTC).isoformat(),

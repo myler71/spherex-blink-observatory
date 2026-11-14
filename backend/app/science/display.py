@@ -1,5 +1,5 @@
-from astropy.visualization import AsymmetricPercentileInterval, AsinhStretch
 import numpy as np
+from astropy.visualization import AsinhStretch, AsymmetricPercentileInterval
 
 
 def render_wiseview(

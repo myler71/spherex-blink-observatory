@@ -1,6 +1,6 @@
 from typing import Any
 
-from app.schemas.narrative import EvidenceItem, EvidenceStoreResponse
+from app.schemas.narrative import EvidenceItem, EvidenceStoreResponse, SourceType
 from app.schemas.observe import ObserveResponse
 
 
@@ -103,10 +103,8 @@ class EvidenceBuilder:
                 )
 
             for m_idx, match in enumerate(obj.catalog_matches[:3], start=1):
-                stype = (
-                    "AllWISE Catalog"
-                    if match.catalog == "AllWISE"
-                    else "SIMBAD Catalog"
+                stype: SourceType = (
+                    "AllWISE Catalog" if match.catalog == "AllWISE" else "SIMBAD Catalog"
                 )
                 items.append(
                     EvidenceItem(
@@ -134,7 +132,10 @@ class EvidenceBuilder:
                     source_name=str(doc.get("title") or "SPHEREx Literature"),
                     source_type="Peer-Reviewed Paper",
                     reference_id=str(doc.get("bibcode_or_doi") or doc.get("doc_id") or "SPHEREx"),
-                    url=str(doc.get("source_url") or "https://irsa.ipac.caltech.edu/Missions/spherex.html"),
+                    url=str(
+                        doc.get("source_url")
+                        or "https://irsa.ipac.caltech.edu/Missions/spherex.html"
+                    ),
                     object_id=None,
                     fact_payload={"title": doc.get("title"), "topic": doc.get("topic_category")},
                 )

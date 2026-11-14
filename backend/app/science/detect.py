@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from astropy.io import fits
 import numpy as np
 import sep
+from astropy.io import fits
 
 from app.config import Settings
 from app.science.align import AlignedFrame
@@ -113,7 +113,11 @@ def extract_sources(frame: AlignedFrame, settings: Settings) -> list[FrameDetect
         y2_err = float(objs["erry2"][i]) if "erry2" in objs.dtype.names else 0.0
         c_err = float(np.sqrt(max(0.0, x2_err) + max(0.0, y2_err)))
         c_err = max(c_err, 0.08, 0.6 / max(snr, 1.0))
-        wl_i = float(wls[i]) if np.isfinite(wls[i]) else (frame.provenance.central_wavelength_um or 1.5)
+        wl_i = (
+            float(wls[i])
+            if np.isfinite(wls[i])
+            else (frame.provenance.central_wavelength_um or 1.5)
+        )
         bw_i = float(bws[i]) if np.isfinite(bws[i]) else (frame.provenance.bandwidth_um or 0.04)
 
         detections.append(

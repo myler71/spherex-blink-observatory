@@ -10,7 +10,11 @@ from app.store.documents import LocalDocumentStore
 
 
 def test_cache_store_disk_fallback_and_version_invalidation(tmp_path: Path) -> None:
-    s1 = Settings(cache_dir=str(tmp_path / "cache"), redis_url="redis://127.0.0.1:6599/0", pipeline_version="1.0.0")
+    s1 = Settings(
+        cache_dir=str(tmp_path / "cache"),
+        redis_url="redis://127.0.0.1:6599/0",
+        pipeline_version="1.0.0",
+    )
     c1 = CacheStore(s1)
     q = ObserveQuery(ra=10.0, dec=20.0, fov=0.08)
     c1.set_json("observe", "k1", {"hello": "world"}, ttl_seconds=60)
@@ -19,7 +23,11 @@ def test_cache_store_disk_fallback_and_version_invalidation(tmp_path: Path) -> N
     assert hit["hello"] == "world"
 
     # Different pipeline_version misses when keyed with version
-    s2 = Settings(cache_dir=str(tmp_path / "cache"), redis_url="redis://127.0.0.1:6599/0", pipeline_version="2.0.0")
+    s2 = Settings(
+        cache_dir=str(tmp_path / "cache"),
+        redis_url="redis://127.0.0.1:6599/0",
+        pipeline_version="2.0.0",
+    )
     c2 = CacheStore(s2)
     assert c2.get_json("observe", c2.versioned_key("k1")) is None
     assert q.ra == 10.0

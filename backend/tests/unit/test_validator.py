@@ -1,5 +1,6 @@
 import pytest
 
+from app.narrator.validator import CHAPTER_TITLES, ClaimValidator
 from app.schemas.narrative import (
     ChapterBlock,
     CitationItem,
@@ -10,7 +11,6 @@ from app.schemas.narrative import (
     QuotedValue,
     ValidationSummary,
 )
-from app.narrator.validator import CHAPTER_TITLES, ClaimValidator
 
 
 def _sample_evidence() -> EvidenceStoreResponse:
@@ -90,7 +90,9 @@ def _valid_story(claim: InteractiveStoryClaim | None = None) -> CosmicNarratorRe
             ),
         ],
         quoted_values=[
-            QuotedValue(evidence_id="ev_det_1", field="pm_total_arcsec_yr", value=10.39, unit="arcsec/yr"),
+            QuotedValue(
+                evidence_id="ev_det_1", field="pm_total_arcsec_yr", value=10.39, unit="arcsec/yr"
+            ),
             QuotedValue(evidence_id="ev_det_1", field="snr", value=42.5, unit=""),
         ],
     )
@@ -128,10 +130,16 @@ def test_validator_accepts_grounded_story() -> None:
 @pytest.mark.parametrize(
     "case_name,mutator",
     [
-        ("01_invented_evidence_id", lambda c: c.citations[0].__setattr__("evidence_id", "ev_fake_999")),
+        (
+            "01_invented_evidence_id",
+            lambda c: c.citations[0].__setattr__("evidence_id", "ev_fake_999"),
+        ),
         ("02_wrong_marker_id", lambda c: c.__setattr__("visual_marker_id", "obj_nonexistent")),
         ("03_altered_quoted_number", lambda c: c.quoted_values[0].__setattr__("value", 99.5)),
-        ("04_unindexed_prose_number", lambda c: c.__setattr__("statement", "Source obj_001 moves at 88.88 arcsec/yr.")),
+        (
+            "04_unindexed_prose_number",
+            lambda c: c.__setattr__("statement", "Source obj_001 moves at 88.88 arcsec/yr."),
+        ),
         (
             "05_upgraded_badge_without_catalog",
             lambda c: (
@@ -141,19 +149,54 @@ def test_validator_accepts_grounded_story() -> None:
                 c.__setattr__("statement", "Source obj_002 is confirmed."),
             ),
         ),
-        ("06_planet_nine_claim", lambda c: c.__setattr__("statement", "We discovered Planet Nine at 10.39 arcsec/yr.")),
-        ("07_planet_x_claim", lambda c: c.__setattr__("statement", "This confirms Planet X motion of 10.39 arcsec/yr.")),
-        ("08_ninth_planet_paraphrase", lambda c: c.__setattr__("statement", "Evidence of the ninth planet moving 10.39 arcsec/yr.")),
-        ("09_confirmed_discovery_phrase", lambda c: c.__setattr__("statement", "This is a confirmed discovery at 10.39 arcsec/yr.")),
-        ("10_first_detection_phrase", lambda c: c.__setattr__("statement", "Marks the first detection of 10.39 arcsec/yr.")),
+        (
+            "06_planet_nine_claim",
+            lambda c: c.__setattr__("statement", "We discovered Planet Nine at 10.39 arcsec/yr."),
+        ),
+        (
+            "07_planet_x_claim",
+            lambda c: c.__setattr__(
+                "statement", "This confirms Planet X motion of 10.39 arcsec/yr."
+            ),
+        ),
+        (
+            "08_ninth_planet_paraphrase",
+            lambda c: c.__setattr__(
+                "statement", "Evidence of the ninth planet moving 10.39 arcsec/yr."
+            ),
+        ),
+        (
+            "09_confirmed_discovery_phrase",
+            lambda c: c.__setattr__(
+                "statement", "This is a confirmed discovery at 10.39 arcsec/yr."
+            ),
+        ),
+        (
+            "10_first_detection_phrase",
+            lambda c: c.__setattr__("statement", "Marks the first detection of 10.39 arcsec/yr."),
+        ),
         ("11_missing_citations", lambda c: c.__setattr__("citations", [])),
-        ("12_fabricated_url_in_citation", lambda c: c.citations[0].__setattr__("url", "https://evil.example.com/fake-doi")),
+        (
+            "12_fabricated_url_in_citation",
+            lambda c: c.citations[0].__setattr__("url", "https://evil.example.com/fake-doi"),
+        ),
         (
             "13_moving_badge_on_non_mover",
             lambda c: (
                 c.__setattr__("visual_marker_id", "obj_002"),
                 c.__setattr__("confidence_badge", "Candidate Moving Source"),
-                c.__setattr__("citations", [CitationItem(evidence_id="ev_det_2", source_name="SPHEREx Pipeline", reference_id="obj_002", url="https://irsa.ipac.caltech.edu/Missions/spherex.html", source_type="NASA SPHEREx")]),
+                c.__setattr__(
+                    "citations",
+                    [
+                        CitationItem(
+                            evidence_id="ev_det_2",
+                            source_name="SPHEREx Pipeline",
+                            reference_id="obj_002",
+                            url="https://irsa.ipac.caltech.edu/Missions/spherex.html",
+                            source_type="NASA SPHEREx",
+                        )
+                    ],
+                ),
                 c.__setattr__("quoted_values", []),
                 c.__setattr__("statement", "Object obj_002 is moving."),
             ),
@@ -163,7 +206,18 @@ def test_validator_accepts_grounded_story() -> None:
             lambda c: (
                 c.__setattr__("visual_marker_id", "obj_002"),
                 c.__setattr__("confidence_badge", "Candidate Variable"),
-                c.__setattr__("citations", [CitationItem(evidence_id="ev_det_2", source_name="SPHEREx Pipeline", reference_id="obj_002", url="https://irsa.ipac.caltech.edu/Missions/spherex.html", source_type="NASA SPHEREx")]),
+                c.__setattr__(
+                    "citations",
+                    [
+                        CitationItem(
+                            evidence_id="ev_det_2",
+                            source_name="SPHEREx Pipeline",
+                            reference_id="obj_002",
+                            url="https://irsa.ipac.caltech.edu/Missions/spherex.html",
+                            source_type="NASA SPHEREx",
+                        )
+                    ],
+                ),
                 c.__setattr__("quoted_values", []),
                 c.__setattr__("statement", "Object obj_002 is variable."),
             ),

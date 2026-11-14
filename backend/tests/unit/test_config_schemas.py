@@ -17,9 +17,7 @@ def test_settings_defaults_reference_verified_releases_and_flags() -> None:
     assert "spherex_qr3" in s.spherex_releases
     assert 12 not in s.spherex_reject_flag_bits  # FULLSAMPLE must not reject
     assert 21 not in s.spherex_reject_flag_bits  # SOURCE must not reject
-    assert {0, 1, 2, 6, 9, 10, 11, 15, 17, 19, 25, 26, 27}.issubset(
-        set(s.spherex_reject_flag_bits)
-    )
+    assert {0, 1, 2, 6, 9, 10, 11, 15, 17, 19, 25, 26, 27}.issubset(set(s.spherex_reject_flag_bits))
     assert s.llm_provider == "template"
 
 

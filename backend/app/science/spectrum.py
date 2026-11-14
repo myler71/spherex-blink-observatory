@@ -1,6 +1,6 @@
-from astropy.io import fits
 import numpy as np
 import sep
+from astropy.io import fits
 
 from app.schemas.observe import SpectrumPoint, SpectrumResponse
 from app.science.align import AlignedFrame
@@ -46,7 +46,11 @@ def extract_spectrum(
             wls, bws = compute_wavelength_from_header_and_wave_bytes(
                 f.image_header, f.wave_table_bytes, np.array([x_nat]), np.array([y_nat])
             )
-            wl = float(wls[0]) if np.isfinite(wls[0]) else (f.provenance.central_wavelength_um or 0.0)
+            wl = (
+                float(wls[0])
+                if np.isfinite(wls[0])
+                else (f.provenance.central_wavelength_um or 0.0)
+            )
             bw = float(bws[0]) if np.isfinite(bws[0]) else (f.provenance.bandwidth_um or 0.04)
         else:
             wl = f.provenance.central_wavelength_um or 0.0

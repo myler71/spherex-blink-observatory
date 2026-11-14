@@ -1,9 +1,9 @@
 import asyncio
-from io import BytesIO
 import re
+from io import BytesIO
 
-from astropy.io import fits
 import httpx
+from astropy.io import fits
 
 from app.archive.http_client import parse_csv_rows, request_with_retries
 from app.config import Settings
@@ -80,8 +80,12 @@ class IrsaArchiveAdapter:
                         obs_id=str(r.get("obs_id") or ""),
                         plane_id=str(r.get("plane_id") or ""),
                         collection=str(r.get("collection") or "spherex_dr1"),
-                        mjd_start=float(r["time_bounds_lower"]) if r.get("time_bounds_lower") else 0.0,
-                        mjd_end=float(r["time_bounds_upper"]) if r.get("time_bounds_upper") else 0.0,
+                        mjd_start=float(r["time_bounds_lower"])
+                        if r.get("time_bounds_lower")
+                        else 0.0,
+                        mjd_end=float(r["time_bounds_upper"])
+                        if r.get("time_bounds_upper")
+                        else 0.0,
                         bandpass=str(r.get("energy_bandpassname") or "SPHEREx-D1"),
                         provenance_version=str(r.get("provenance_version") or "7.0"),
                         raw_uri=rel_uri,

@@ -8,7 +8,9 @@ async def patch_analyzer_node(state: dict[str, Any]) -> dict[str, Any]:
     observe = state["observe"]
     movers = [o for o in observe.detected_objects if o.is_candidate_moving]
     variables = [o for o in observe.detected_objects if o.is_variable]
-    dropouts = [o for o in observe.detected_objects if o.gaia_counterpart.status == "no_counterpart"]
+    dropouts = [
+        o for o in observe.detected_objects if o.gaia_counterpart.status == "no_counterpart"
+    ]
     matched_names: list[str] = []
     for o in observe.detected_objects:
         if o.catalog_matches:

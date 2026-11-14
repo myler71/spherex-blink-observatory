@@ -32,10 +32,14 @@ def test_comparisons_dipole_on_mover_and_omits_mismatched_bands(tmp_path: Path) 
         tmp_path / "matched",
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     comp, diff_arr, add_arr = build_comparisons(aligned, settings)
     assert comp.status == "ok"
@@ -62,7 +66,9 @@ def test_comparisons_dipole_on_mover_and_omits_mismatched_bands(tmp_path: Path) 
         tmp_path / "mis",
     )
     cal_m = [
-        calibrate_cutout(ds_mis.frames[0].fits_path, archive_url="a", release="spherex_dr1", settings=settings),
+        calibrate_cutout(
+            ds_mis.frames[0].fits_path, archive_url="a", release="spherex_dr1", settings=settings
+        ),
     ]
     # Second frame from detector 6
     ds_mis6 = generate_synthetic_dataset(
@@ -77,7 +83,9 @@ def test_comparisons_dipole_on_mover_and_omits_mismatched_bands(tmp_path: Path) 
         tmp_path / "mis6",
     )
     cal_m.append(
-        calibrate_cutout(ds_mis6.frames[1].fits_path, archive_url="b", release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            ds_mis6.frames[1].fits_path, archive_url="b", release="spherex_dr1", settings=settings
+        )
     )
     aligned_m = align_frames(cal_m, ref_wcs, grid)
     comp_m, diff_m, _ = build_comparisons(aligned_m, settings)
@@ -102,10 +110,14 @@ def test_coadd_snr_improves_by_sqrt_n(tmp_path: Path) -> None:
         tmp_path,
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     coadds = coadd_by_detector_visit(aligned, settings)
     assert len(coadds) == 1
@@ -132,10 +144,14 @@ def test_spectrum_sorted_and_wiseview_display_deterministic(tmp_path: Path) -> N
         tmp_path,
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     gt_slope = ds.ground_truth["sloped_star"]
     spec = extract_spectrum("obs_syn", aligned, ra_deg=gt_slope["ra"], dec_deg=gt_slope["dec"])

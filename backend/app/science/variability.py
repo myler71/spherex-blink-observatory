@@ -23,9 +23,7 @@ def compute_variability(
         for b_idx, c_wl in enumerate(bin_centers):
             if abs(det.wavelength_um - c_wl) <= tol:
                 bins[b_idx].append(idx)
-                bin_centers[b_idx] = float(
-                    np.mean([obs[k].wavelength_um for k in bins[b_idx]])
-                )
+                bin_centers[b_idx] = float(np.mean([obs[k].wavelength_um for k in bins[b_idx]]))
                 placed = True
                 break
         if not placed:

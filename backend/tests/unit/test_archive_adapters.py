@@ -1,9 +1,9 @@
 from io import BytesIO
 from pathlib import Path
 
-from astropy.io import fits
 import httpx
 import pytest
+from astropy.io import fits
 
 from app.archive.ads import AdsAdapter
 from app.archive.cadc import CadcNeossatAdapter
@@ -20,7 +20,10 @@ from app.store.cache import CacheStore
 
 
 def test_validate_irsa_relative_uri_blocks_ssrf_and_traversal() -> None:
-    assert validate_irsa_relative_uri("ibe/data/spherex/dr1/level2/test.fits") == "/ibe/data/spherex/dr1/level2/test.fits"
+    assert (
+        validate_irsa_relative_uri("ibe/data/spherex/dr1/level2/test.fits")
+        == "/ibe/data/spherex/dr1/level2/test.fits"
+    )
     with pytest.raises(ValueError):
         validate_irsa_relative_uri("http://169.254.169.254/latest/meta-data/")
     with pytest.raises(ValueError):
@@ -102,7 +105,7 @@ async def test_simbad_mirror_failover_on_404_and_gaia_truncation() -> None:
         if "mirror.simbad.test" in url:
             return httpx.Response(
                 200,
-                text="main_id,otype,ra,dec,pmra,pmdec,plx_value\n\"Barnard's Star\",\"PM*\",269.45,4.73,-801.5,10362.4,546.9\n",
+                text='main_id,otype,ra,dec,pmra,pmdec,plx_value\n"Barnard\'s Star","PM*",269.45,4.73,-801.5,10362.4,546.9\n',
             )
         if "gea.esac.esa.int" in url:
             return httpx.Response(

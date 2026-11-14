@@ -1,5 +1,5 @@
-from astropy.io import fits
 import numpy as np
+from astropy.io import fits
 
 from app.schemas.observe import FlagSummary
 
@@ -41,7 +41,7 @@ def parse_flag_definitions(flags_header: fits.Header | None) -> dict[int, tuple[
     defs = dict(VERIFIED_FLAG_BITS)
     if flags_header is None:
         return defs
-    for key in flags_header.keys():
+    for key in flags_header:
         if key.startswith("MSKN") and key[4:].isdigit():
             bit = int(key[4:])
             desc_key = "MSKD" + key[4:]

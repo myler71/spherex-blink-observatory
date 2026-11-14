@@ -59,7 +59,7 @@ def link_detections(
             for det in dets:
                 tracks.append(
                     LinkedTrack(
-                        track_id=f"obj_{len(tracks)+1:03d}",
+                        track_id=f"obj_{len(tracks) + 1:03d}",
                         observations=[det],
                         mean_ra=det.ra,
                         mean_dec=det.dec,
@@ -114,7 +114,7 @@ def link_detections(
             if det_idx not in assigned_dets:
                 tracks.append(
                     LinkedTrack(
-                        track_id=f"obj_{len(tracks)+1:03d}",
+                        track_id=f"obj_{len(tracks) + 1:03d}",
                         observations=[det],
                         mean_ra=det.ra,
                         mean_dec=det.dec,

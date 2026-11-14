@@ -34,10 +34,14 @@ def test_subpixel_mover_065px_recovered_and_50_static_stars_zero_false_movers(
         tmp_path,
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(180.0, 20.0, 0.18, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        180.0, 20.0, 0.18, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     per_frame = [extract_sources(a, settings) for a in aligned]
     tracks = link_detections(per_frame, aligned, settings)
@@ -85,19 +89,21 @@ def test_cos_dec_factor_at_dec_60_and_single_visit_null_motion(tmp_path: Path) -
         tmp_path,
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(120.0, 60.0, 0.08, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        120.0, 60.0, 0.08, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     per_frame = [extract_sources(a, settings) for a in aligned]
     tracks = link_detections(per_frame, aligned, settings)
     gt_mover = ds.ground_truth["mover"]
     mover_track = min(
         tracks,
-        key=lambda t: np.hypot(
-            (t.mean_ra - gt_mover["ra0"]) * 0.5, t.mean_dec - gt_mover["dec0"]
-        ),
+        key=lambda t: np.hypot((t.mean_ra - gt_mover["ra0"]) * 0.5, t.mean_dec - gt_mover["dec0"]),
     )
     m, _, _, is_moving = fit_motion(mover_track, grid.pixel_scale_arcsec, settings)
     assert is_moving is True
@@ -105,7 +111,9 @@ def test_cos_dec_factor_at_dec_60_and_single_visit_null_motion(tmp_path: Path) -
 
     # Single-visit track returns null motion with reason
     single_tracks = link_detections([per_frame[0]], [aligned[0]], settings)
-    m_single, _, _, is_moving_single = fit_motion(single_tracks[0], grid.pixel_scale_arcsec, settings)
+    m_single, _, _, is_moving_single = fit_motion(
+        single_tracks[0], grid.pixel_scale_arcsec, settings
+    )
     assert is_moving_single is False
     assert m_single.pm_total_mas_yr is None
     assert m_single.reason is not None
@@ -131,10 +139,14 @@ def test_variability_ignores_sloped_spectrum_but_flags_30pct_same_band_change(
         tmp_path,
     )
     cal = [
-        calibrate_cutout(f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings)
+        calibrate_cutout(
+            f.fits_path, archive_url=f.obs_id, release="spherex_dr1", settings=settings
+        )
         for f in ds.frames
     ]
-    ref_wcs, grid = build_reference_wcs(180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec)
+    ref_wcs, grid = build_reference_wcs(
+        180.0, 20.0, 0.08, settings.spherex_native_pixel_scale_arcsec
+    )
     aligned = align_frames(cal, ref_wcs, grid)
     per_frame = [extract_sources(a, settings) for a in aligned]
     tracks = link_detections(per_frame, aligned, settings)
@@ -142,7 +154,9 @@ def test_variability_ignores_sloped_spectrum_but_flags_30pct_same_band_change(
     gt_var = ds.ground_truth["variable"]
     gt_slope = ds.ground_truth["sloped_star"]
 
-    var_track = min(tracks, key=lambda t: np.hypot(t.mean_ra - gt_var["ra"], t.mean_dec - gt_var["dec"]))
+    var_track = min(
+        tracks, key=lambda t: np.hypot(t.mean_ra - gt_var["ra"], t.mean_dec - gt_var["dec"])
+    )
     slope_track = min(
         tracks, key=lambda t: np.hypot(t.mean_ra - gt_slope["ra"], t.mean_dec - gt_slope["dec"])
     )

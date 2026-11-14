@@ -41,16 +41,16 @@ def coadd_by_detector_visit(
         num = np.zeros(shape, dtype=np.float64)
         den = np.zeros(shape, dtype=np.float64)
         for f in members:
-            valid = (~f.bad_mask) & np.isfinite(f.image) & np.isfinite(f.variance) & (f.variance > 0)
+            valid = (
+                (~f.bad_mask) & np.isfinite(f.image) & np.isfinite(f.variance) & (f.variance > 0)
+            )
             w = np.where(valid, 1.0 / np.maximum(f.variance, 1e-6), 0.0)
             num += np.where(valid, f.image * w, 0.0)
             den += w
 
         coadd = np.where(den > 0.0, num / np.maximum(den, 1e-12), 0.0).astype(np.float32)
         u8 = render_wiseview(coadd)
-        mean_wl = float(
-            np.mean([m.provenance.central_wavelength_um or 0.0 for m in members])
-        )
+        mean_wl = float(np.mean([m.provenance.central_wavelength_um or 0.0 for m in members]))
         prod = CoaddProduct(
             detector=det,
             visit_index=v_idx,

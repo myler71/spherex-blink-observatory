@@ -56,13 +56,12 @@ class NarratorOrchestrator:
         self._graph = self._compile_graph()
 
     def _compile_graph(self) -> Any:
-        builder: StateGraph = StateGraph(NarratorGraphState)
-        builder.add_node("patch_analyzer", patch_analyzer_node)
-        builder.add_node("research_planner", research_planner_node)
-        builder.add_node("retriever", retriever_node)
-        builder.add_node("story_generator", story_generator_node)
-        builder.add_node("claim_validator", claim_validator_node)
-
+        builder: StateGraph[NarratorGraphState] = StateGraph(NarratorGraphState)
+        builder.add_node("patch_analyzer", patch_analyzer_node)  # type: ignore[type-var]
+        builder.add_node("research_planner", research_planner_node)  # type: ignore[type-var]
+        builder.add_node("retriever", retriever_node)  # type: ignore[type-var]
+        builder.add_node("story_generator", story_generator_node)  # type: ignore[type-var]
+        builder.add_node("claim_validator", claim_validator_node)  # type: ignore[type-var]
         builder.add_edge(START, "patch_analyzer")
         builder.add_edge("patch_analyzer", "research_planner")
         builder.add_edge("research_planner", "retriever")

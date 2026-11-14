@@ -1,12 +1,11 @@
-from dataclasses import dataclass, field
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
-import numpy as np
-
 
 FLAG_DEFINITIONS: dict[int, tuple[str, str]] = {
     0: ("TRANSIENT", "Transient detected during SUR"),
@@ -109,7 +108,7 @@ def _build_wcs_wave_hdu(
     col_y = fits.Column(name="Y", format=f"{len(gy)}J", array=[gy])
     col_v = fits.Column(
         name="VALUES",
-        format=f"{9*9*2}E",
+        format=f"{9 * 9 * 2}E",
         dim="(2, 9, 9)",
         array=[vals],
     )
@@ -141,9 +140,7 @@ def _build_wcs_wave_hdu(
     return hdu, wcs_cards
 
 
-def generate_synthetic_dataset(
-    scenario: SyntheticScenario, out_dir: Path
-) -> SyntheticDataset:
+def generate_synthetic_dataset(scenario: SyntheticScenario, out_dir: Path) -> SyntheticDataset:
     out_dir.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(scenario.seed)
 
@@ -238,7 +235,9 @@ def generate_synthetic_dataset(
                 format="E",
                 array=np.linspace(0, ny, epsf_rows, dtype=np.float32),
             ),
-            fits.Column(name="NEFF_MEAN", format="E", array=np.full(epsf_rows, 6.2, dtype=np.float32)),
+            fits.Column(
+                name="NEFF_MEAN", format="E", array=np.full(epsf_rows, 6.2, dtype=np.float32)
+            ),
             fits.Column(name="CWAVE", format="E", array=np.full(epsf_rows, 1.5, dtype=np.float32)),
             fits.Column(name="CBAND", format="E", array=np.full(epsf_rows, 0.04, dtype=np.float32)),
             fits.Column(
@@ -280,12 +279,19 @@ def generate_synthetic_dataset(
             clean_img = np.zeros((ny, nx), dtype=np.float64)
             flags = np.full((ny, nx), 1 << 12, dtype=np.int32)  # FULLSAMPLE bit 12
 
-            def _add_star(ra_v: float, dec_v: float, flux_v: float) -> None:
-                px, py = w.world_to_pixel_values(ra_v, dec_v)
+            def _add_star(
+                ra_v: float,
+                dec_v: float,
+                flux_v: float,
+                wcs_obj: WCS = w,
+                img_arr: np.ndarray = clean_img,
+                flag_arr: np.ndarray = flags,
+            ) -> None:
+                px, py = wcs_obj.world_to_pixel_values(ra_v, dec_v)
                 if 2 <= px < nx - 2 and 2 <= py < ny - 2:
-                    clean_img[:] += _gaussian_stamp(ny, nx, float(px), float(py), flux_v)
+                    img_arr[:] += _gaussian_stamp(ny, nx, float(px), float(py), flux_v)
                     ix, iy = int(round(float(px))), int(round(float(py)))
-                    flags[iy, ix] |= 1 << 21  # SOURCE bit 21
+                    flag_arr[iy, ix] |= 1 << 21  # SOURCE bit 21
 
             for s in static_stars:
                 _add_star(s["ra"], s["dec"], s["flux"])
@@ -344,7 +350,9 @@ def generate_synthetic_dataset(
             var_hdu = fits.ImageHDU(data=variance.astype(">f4"), name="VARIANCE")
             zodi_hdu = fits.ImageHDU(data=zodi.astype(">f4"), name="ZODI")
 
-            hdul = fits.HDUList([primary, img_hdu, flags_hdu, var_hdu, zodi_hdu, epsf_hdu, wave_hdu])
+            hdul = fits.HDUList(
+                [primary, img_hdu, flags_hdu, var_hdu, zodi_hdu, epsf_hdu, wave_hdu]
+            )
             fpath = out_dir / f"{obs_id}.fits"
             hdul.writeto(fpath, overwrite=True)
 

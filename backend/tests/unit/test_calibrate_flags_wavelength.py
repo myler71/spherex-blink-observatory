@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from astropy.io import fits
-from astropy.wcs import WCS
 import numpy as np
 import pytest
+from astropy.io import fits
+from astropy.wcs import WCS
 
 from app.config import Settings
 from app.science.calibrate import calibrate_cutout
@@ -17,7 +17,7 @@ def test_flags_mask_preserves_fullsample_and_source_bits(tmp_path: Path) -> None
     flags = np.zeros((10, 10), dtype=np.int32)
     flags[:, :] = 1 << 12  # FULLSAMPLE
     flags[3, 3] |= 1 << 21  # SOURCE
-    flags[5, 5] |= 1 << 0   # TRANSIENT (reject)
+    flags[5, 5] |= 1 << 0  # TRANSIENT (reject)
     flags[7, 8] |= 1 << 10  # HOT (reject)
 
     bad_mask, u8_mask, summary = build_flag_mask_and_summary(
@@ -68,7 +68,7 @@ def test_calibrate_and_wavelength_on_synthetic_and_missing_zodi(tmp_path: Path) 
 
 def test_real_fixtures_wavelength_and_epsf_dynamic_rows(fixtures_dir: Path) -> None:
     settings = Settings()
-    for name, ra, dec, lo, hi in [
+    for name, _ra, _dec, lo, hi in [
         ("barnards_star_sample.fits", 269.452075, 4.693389, 0.75, 5.05),
         ("wise_0855_sample.fits", 133.795129, -7.245147, 0.75, 5.05),
     ]:

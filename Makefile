@@ -17,7 +17,7 @@ test-live:
 	PYTHONPATH=backend $(PYTEST) -m "live" -v
 
 coverage:
-	PYTHONPATH=backend $(PYTEST) -m "not live" --cov=backend/app/science --cov=backend/app/narrator/validator --cov-report=term-missing
+	PYTHONPATH=backend $(PYTEST) -m "not live" --cov=app.science --cov=app.narrator.validator --cov-report=term-missing
 
 lint:
 	$(RUFF) check backend

@@ -4,9 +4,10 @@ Revision ID: 0001_initial
 Revises:
 Create Date: 2026-11-14
 """
+
+import sqlalchemy as sa
 from alembic import op
 from pgvector.sqlalchemy import Vector
-import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = "0001_initial"
@@ -84,7 +85,9 @@ def upgrade() -> None:
         ),
         sa.Column("embedding", Vector(384), nullable=True),
     )
-    op.create_index("ix_scientific_documents_tsv", "scientific_documents", ["tsv"], postgresql_using="gin")
+    op.create_index(
+        "ix_scientific_documents_tsv", "scientific_documents", ["tsv"], postgresql_using="gin"
+    )
     op.create_index(
         "ix_scientific_documents_object_ids",
         "scientific_documents",

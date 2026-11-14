@@ -52,9 +52,7 @@ class GaiaAdapter:
             )
             rows = parse_csv_rows(resp.text)
             truncated = len(rows) >= cap
-            target_mjd = (
-                sum(epochs_mjd) / len(epochs_mjd) if epochs_mjd else 60900.0
-            )
+            target_mjd = sum(epochs_mjd) / len(epochs_mjd) if epochs_mjd else 60900.0
             normalized: list[dict[str, Any]] = []
             for r in rows:
                 ra = _opt_float(r.get("ra"))

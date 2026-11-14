@@ -43,9 +43,7 @@ class MultiAgencyCatalogBundle:
         if include_neossat:
             tasks["neossat"] = self.cadc.query_cone(ra_deg, dec_deg, fov_deg)
         if include_horizons and epochs_mjd:
-            tasks["horizons"] = self.horizons.query_epoch(
-                ra_deg, dec_deg, fov_deg, epochs_mjd[0]
-            )
+            tasks["horizons"] = self.horizons.query_epoch(ra_deg, dec_deg, fov_deg, epochs_mjd[0])
 
         keys = list(tasks.keys())
         results = await asyncio.gather(*[tasks[k] for k in keys], return_exceptions=True)
@@ -57,7 +55,9 @@ class MultiAgencyCatalogBundle:
         else:
             gaia_status, gaia_rows, gaia_trunc = "unavailable", [], False
 
-        def _unpack(key: str, default_status: str = "not_configured") -> tuple[str, list[dict[str, Any]]]:
+        def _unpack(
+            key: str, default_status: str = "not_configured"
+        ) -> tuple[str, list[dict[str, Any]]]:
             val = mapped.get(key)
             if isinstance(val, tuple):
                 return val[0], val[1]

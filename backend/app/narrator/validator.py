@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Literal
 
 from app.schemas.narrative import (
     ChapterBlock,
@@ -78,7 +78,9 @@ class ClaimValidator:
         for ch in story.chapters:
             if _BANNED_PHRASES_RE.search(ch.summary_prose):
                 reasons.append(f"Banned discovery phrase in chapter {ch.chapter_index} prose")
-                cleaned_prose = _BANNED_PHRASES_RE.sub("[redacted unverified claim]", ch.summary_prose)
+                cleaned_prose = _BANNED_PHRASES_RE.sub(
+                    "[redacted unverified claim]", ch.summary_prose
+                )
             else:
                 cleaned_prose = ch.summary_prose
 
@@ -108,7 +110,9 @@ class ClaimValidator:
             )
 
         all_ok = len(reasons) == 0 and rejected == 0
-        status = "passed" if all_ok else ("partial" if accepted > 0 else "fallback_template")
+        status: Literal["passed", "partial", "fallback_template"] = (
+            "passed" if all_ok else ("partial" if accepted > 0 else "fallback_template")
+        )
         updated = story.model_copy(
             update={
                 "chapters": new_chapters,
@@ -168,9 +172,7 @@ class ClaimValidator:
                 continue
             sigma = float(ev.fact_payload.get("pm_total_err_arcsec_yr", 0.0) or 0.0)
             if not _matches_value(qv.value, float(raw_val), sigma=sigma):
-                errs.append(
-                    f"QuotedValue {qv.field}={qv.value} contradicts evidence {raw_val}"
-                )
+                errs.append(f"QuotedValue {qv.field}={qv.value} contradicts evidence {raw_val}")
 
         # Check every standalone numeric literal in statement prose (ignoring marker IDs like obj_001)
         cleaned_stmt = re.sub(r"\bobj_\d+\b", " ", claim.statement)
@@ -194,18 +196,26 @@ class ClaimValidator:
                 for ev in cited_items
             )
             if not has_cat:
-                errs.append("Confirmed Catalog Object badge requires linked catalogue_entry citation")
+                errs.append(
+                    "Confirmed Catalog Object badge requires linked catalogue_entry citation"
+                )
         elif badge == "Candidate Moving Source":
             has_mov = any(bool(ev.fact_payload.get("is_candidate_moving")) for ev in cited_items)
             if not has_mov:
-                errs.append("Candidate Moving Source badge requires is_candidate_moving=True evidence")
+                errs.append(
+                    "Candidate Moving Source badge requires is_candidate_moving=True evidence"
+                )
         elif badge == "Candidate Variable":
             has_var = any(bool(ev.fact_payload.get("is_variable")) for ev in cited_items)
             if not has_var:
                 errs.append("Candidate Variable badge requires is_variable=True evidence")
         elif badge == "Gaia Optical Dropout (IR-Only Candidate)":
-            has_drop = any(ev.fact_payload.get("gaia_status") == "no_counterpart" for ev in cited_items)
+            has_drop = any(
+                ev.fact_payload.get("gaia_status") == "no_counterpart" for ev in cited_items
+            )
             if not has_drop:
-                errs.append("Gaia Optical Dropout badge requires gaia_status=no_counterpart evidence")
+                errs.append(
+                    "Gaia Optical Dropout badge requires gaia_status=no_counterpart evidence"
+                )
 
         return errs

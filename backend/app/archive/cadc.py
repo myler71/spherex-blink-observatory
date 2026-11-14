@@ -22,7 +22,7 @@ class CadcNeossatAdapter:
             "p.time_bounds_lower, p.time_exposure "
             "FROM caom2.Observation o JOIN caom2.Plane p ON o.obsID = p.obsID "
             "WHERE o.collection = 'NEOSSAT' "
-            f"AND 1=CONTAINS(POINT('ICRS', {ra_deg:.5f}, {dec_deg:.5f}), p.position_bounds)"
+            f"AND 1=INTERSECTS(CIRCLE('ICRS', {ra_deg:.5f}, {dec_deg:.5f}, {radius_deg:.4f}), p.position_bounds)"
         )
         own = self._client is None
         client = self._client or httpx.AsyncClient()

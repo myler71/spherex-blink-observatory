@@ -35,7 +35,9 @@ async def test_template_narrator_without_llm_key_passes_validator(tmp_path: Path
     obs = await pipe.run(ObserveQuery(ra=180.0, dec=20.0, fov=0.08))
 
     docs = LocalDocumentStore(tmp_path / "docs.db")
-    orch = NarratorOrchestrator(settings=settings, docs_store=docs, llm_provider=TemplateLlmProvider())
+    orch = NarratorOrchestrator(
+        settings=settings, docs_store=docs, llm_provider=TemplateLlmProvider()
+    )
     evidence = EvidenceBuilder().build(obs, docs=[])
     story = await orch.run(obs, evidence)
 
@@ -47,10 +49,14 @@ async def test_template_narrator_without_llm_key_passes_validator(tmp_path: Path
 
 
 @pytest.mark.asyncio
-async def test_langgraph_retry_recovers_from_invalid_draft_then_accepts_valid(tmp_path: Path) -> None:
+async def test_langgraph_retry_recovers_from_invalid_draft_then_accepts_valid(
+    tmp_path: Path,
+) -> None:
     settings = Settings(llm_provider="fake", cache_dir=str(tmp_path / "cache"))
     ds = generate_synthetic_dataset(
-        SyntheticScenario(num_visits=2, exposures_per_visit=1, detectors=[2], mover_pm_ra_arcsec_yr=6.0),
+        SyntheticScenario(
+            num_visits=2, exposures_per_visit=1, detectors=[2], mover_pm_ra_arcsec_yr=6.0
+        ),
         tmp_path / "syn",
     )
     pipe = ObservePipeline(settings, archive=_MockArchive(ds), catalogs=_MockCatalogs())
@@ -104,7 +110,7 @@ async def test_langgraph_retry_recovers_from_invalid_draft_then_accepts_valid(tm
 
     fake_llm = FakeLlmProvider(
         scripted_chapters=[
-            [bad_claim],   # Attempt 0: fails ClaimValidator
+            [bad_claim],  # Attempt 0: fails ClaimValidator
             [good_claim],  # Attempt 1: passes after retry
         ]
     )

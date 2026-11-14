@@ -41,10 +41,9 @@ def build_comparisons(
             if dt <= settings.visit_gap_days:
                 continue
             tol = max(max(bw1, bw2) * settings.band_match_fraction, 0.025)
-            if abs(wl1 - wl2) <= tol:
-                if best_pair is None or dt > best_pair[0]:
-                    earlier, later = (f1, f2) if mjd1 <= mjd2 else (f2, f1)
-                    best_pair = (dt, earlier, later)
+            if abs(wl1 - wl2) <= tol and (best_pair is None or dt > best_pair[0]):
+                earlier, later = (f1, f2) if mjd1 <= mjd2 else (f2, f1)
+                best_pair = (dt, earlier, later)
 
     if best_pair is None:
         return (

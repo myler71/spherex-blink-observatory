@@ -1,10 +1,10 @@
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-import re
 
+import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
-import numpy as np
 from packaging.version import Version
 
 from app.config import Settings
@@ -60,9 +60,7 @@ def calibrate_cutout(
         mjd_raw = img_hdr.get("MJD-OBS")
         mjd = float(mjd_raw) if mjd_raw is not None else None
         iso_date = str(img_hdr.get("DATE-OBS")) if img_hdr.get("DATE-OBS") is not None else None
-        psf_fwhm = (
-            float(img_hdr.get("PSF_FWHM")) if img_hdr.get("PSF_FWHM") is not None else None
-        )
+        psf_fwhm = float(img_hdr.get("PSF_FWHM")) if img_hdr.get("PSF_FWHM") is not None else None
 
         # ZODI subtraction (FR-05)
         zodi_level: float | None = None
@@ -74,7 +72,9 @@ def calibrate_cutout(
             clean_img = np.ascontiguousarray(raw_img - zodi, dtype=np.float32)
         else:
             clean_img = raw_img
-            warns.append(f"{obs_id}: missing ZODI extension; image used without background subtraction.")
+            warns.append(
+                f"{obs_id}: missing ZODI extension; image used without background subtraction."
+            )
 
         # VARIANCE extension
         if "VARIANCE" in hdul:

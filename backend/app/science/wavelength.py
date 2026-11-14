@@ -1,10 +1,10 @@
-from io import BytesIO
 import logging
+from io import BytesIO
 
-from astropy.io import fits
 import astropy.units as u
-from astropy.wcs import WCS
 import numpy as np
+from astropy.io import fits
+from astropy.wcs import WCS
 
 
 def compute_wavelength_at_pixels(

@@ -1,9 +1,9 @@
 import math
 import warnings
 
+import astropy.units as u
 from astropy.coordinates import Angle, SkyCoord, get_constellation
 from astropy.time import Time
-import astropy.units as u
 
 
 def parse_ra_dec(ra_raw: str | float, dec_raw: str | float) -> tuple[float, float]:

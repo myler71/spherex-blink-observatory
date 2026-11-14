@@ -89,9 +89,15 @@ class AskThisPatchService:
 
         # 3. Deterministic ranking/extremes (fastest, brightest, most variable)
         if any(k in q_low for k in ("fastest", "highest proper motion", "most motion")):
-            movers = [o for o in observe.detected_objects if o.motion.pm_total_arcsec_yr is not None]
+            movers = [
+                o for o in observe.detected_objects if o.motion.pm_total_arcsec_yr is not None
+            ]
             if not movers:
-                return self._no_data_response(observe, q_clean, "No multi-visit proper-motion measurements are available in this patch.")
+                return self._no_data_response(
+                    observe,
+                    q_clean,
+                    "No multi-visit proper-motion measurements are available in this patch.",
+                )
             top: DetectedObject = max(movers, key=lambda o: o.motion.pm_total_arcsec_yr or 0.0)
             ev = ev_by_obj.get(top.id)
             claims: list[InteractiveStoryClaim] = []
@@ -105,7 +111,9 @@ class AskThisPatchService:
                         visual_marker_id=top.id,
                         action_type="show_motion_vector",
                         confidence_badge=(
-                            "Candidate Moving Source" if top.is_candidate_moving else "Probable Association"
+                            "Candidate Moving Source"
+                            if top.is_candidate_moving
+                            else "Probable Association"
                         ),
                         citations=[_cite(ev)],
                         quoted_values=[
@@ -132,7 +140,9 @@ class AskThisPatchService:
 
         if any(k in q_low for k in ("brightest", "highest snr")):
             if not observe.detected_objects:
-                return self._no_data_response(observe, q_clean, "No detected sources are present in this patch.")
+                return self._no_data_response(
+                    observe, q_clean, "No detected sources are present in this patch."
+                )
             bright = max(observe.detected_objects, key=lambda o: o.snr)
             ev = ev_by_obj.get(bright.id)
             claims = []
@@ -145,7 +155,9 @@ class AskThisPatchService:
                         confidence_badge="Probable Association",
                         citations=[_cite(ev)],
                         quoted_values=[
-                            QuotedValue(evidence_id=ev.evidence_id, field="snr", value=float(bright.snr))
+                            QuotedValue(
+                                evidence_id=ev.evidence_id, field="snr", value=float(bright.snr)
+                            )
                         ],
                     )
                 )
@@ -159,7 +171,11 @@ class AskThisPatchService:
             )
 
         if "gaia" in q_low:
-            matched = [o for o in observe.detected_objects if o.gaia_counterpart.status == "has_counterpart"]
+            matched = [
+                o
+                for o in observe.detected_objects
+                if o.gaia_counterpart.status == "has_counterpart"
+            ]
             return AskResponse(
                 observation_id=observe.observation_id,
                 question=q_clean,

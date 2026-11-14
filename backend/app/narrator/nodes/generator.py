@@ -1,5 +1,5 @@
 import time
-from typing import Any
+from typing import Any, Literal
 
 from app.narrator.templates import build_template_narrative
 from app.narrator.validator import CHAPTER_TITLES
@@ -31,10 +31,7 @@ async def story_generator_node(state: dict[str, Any]) -> dict[str, Any]:
             chapters: list[ChapterBlock] = []
             for idx in range(5):
                 raw_claims = raw_chapters[idx] if idx < len(raw_chapters) else []
-                parsed_claims = [
-                    InteractiveStoryClaim.model_validate(c)
-                    for c in raw_claims
-                ]
+                parsed_claims = [InteractiveStoryClaim.model_validate(c) for c in raw_claims]
                 chapters.append(
                     ChapterBlock(
                         chapter_index=idx + 1,
@@ -43,7 +40,9 @@ async def story_generator_node(state: dict[str, Any]) -> dict[str, Any]:
                         claims=parsed_claims,
                     )
                 )
-            gen_mode = "fake" if getattr(llm, "mode", "") == "fake" else "llm"
+            gen_mode: Literal["llm", "template", "fake"] = (
+                "fake" if getattr(llm, "mode", "") == "fake" else "llm"
+            )
             draft = CosmicNarratorResponse(
                 observation_id=observe.observation_id,
                 patch_headline=template_base.patch_headline,

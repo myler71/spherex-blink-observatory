@@ -1,14 +1,13 @@
 import asyncio
-from datetime import UTC, datetime
 import hashlib
 import math
 import time
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlencode
 
-from astropy.coordinates import SkyCoord
 import astropy.units as u
-import numpy as np
+from astropy.coordinates import SkyCoord
 
 from app.config import Settings
 from app.schemas.common import EncodedArray, ServiceStatus
@@ -79,7 +78,17 @@ def _attribution_info() -> AttributionInfo:
             "SPHEREx_QR3": "10.26131/IRSA662",
             "SPHEREx_QR2": "10.26131/IRSA652",
         },
-        libraries=["FastAPI", "Astropy", "Astroquery", "PyVO", "Reproject", "SEP", "Photutils", "SciPy", "LangGraph"],
+        libraries=[
+            "FastAPI",
+            "Astropy",
+            "Astroquery",
+            "PyVO",
+            "Reproject",
+            "SEP",
+            "Photutils",
+            "SciPy",
+            "LangGraph",
+        ],
     )
 
 
@@ -327,7 +336,9 @@ class ObservePipeline:
                     width=nx,
                     height=ny,
                     pixels=EncodedArray.from_numpy(a.image),
-                    variance=EncodedArray.from_numpy(a.variance) if query.include_variance else None,
+                    variance=EncodedArray.from_numpy(a.variance)
+                    if query.include_variance
+                    else None,
                     flags_mask=EncodedArray.from_numpy(a.flags_u8),
                     display_u8=EncodedArray.from_numpy(disp),
                     flipbook_diff_u8=EncodedArray.from_numpy(fdiff_disp),
@@ -408,11 +419,15 @@ class ObservePipeline:
                 wording=f"Matched Gaia DR3 {best_row.get('source_id')}",
                 separation_arcsec=round(best_sep, 3),
                 source_id=str(best_row.get("source_id")),
-                ra_deg=float(best_row.get("ra_epoch", best_row.get("ra"))),
-                dec_deg=float(best_row.get("dec_epoch", best_row.get("dec"))),
+                ra_deg=float(best_row.get("ra_epoch") or best_row["ra"]),
+                dec_deg=float(best_row.get("dec_epoch") or best_row["dec"]),
                 pmra_mas_yr=float(best_row["pmra"]) if best_row.get("pmra") is not None else None,
-                pmdec_mas_yr=float(best_row["pmdec"]) if best_row.get("pmdec") is not None else None,
-                parallax_mas=float(best_row["parallax"]) if best_row.get("parallax") is not None else None,
+                pmdec_mas_yr=float(best_row["pmdec"])
+                if best_row.get("pmdec") is not None
+                else None,
+                parallax_mas=float(best_row["parallax"])
+                if best_row.get("parallax") is not None
+                else None,
                 phot_g_mean_mag=(
                     float(best_row["phot_g_mean_mag"])
                     if best_row.get("phot_g_mean_mag") is not None
@@ -458,8 +473,8 @@ class ObservePipeline:
                         identifier=ident,
                         otype=str(best_row.get("otype")) if best_row.get("otype") else None,
                         separation_arcsec=round(best_sep, 3),
-                        ra_deg=float(best_row.get("ra_epoch", best_row.get("ra"))),
-                        dec_deg=float(best_row.get("dec_epoch", best_row.get("dec"))),
+                        ra_deg=float(best_row.get("ra_epoch") or best_row["ra"]),
+                        dec_deg=float(best_row.get("dec_epoch") or best_row["dec"]),
                         url=best_row.get("url"),
                         metadata=best_row,
                     )

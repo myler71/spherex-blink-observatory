@@ -43,7 +43,9 @@ class NedAdapter:
             for ln in lines[1:26]:
                 cols = [c.strip() for c in ln.split("|")]
                 if len(cols) >= 5:
-                    out.append({"object_name": cols[1], "type": cols[4], "ra": cols[2], "dec": cols[3]})
+                    out.append(
+                        {"object_name": cols[1], "type": cols[4], "ra": cols[2], "dec": cols[3]}
+                    )
             return "up", out
         except Exception:
             return "unavailable", []

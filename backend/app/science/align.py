@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from astropy.wcs import WCS
 import numpy as np
+from astropy.wcs import WCS
 from reproject import reproject_interp
 
 from app.schemas.observe import FlagSummary, FrameProvenance, WcsGrid
@@ -72,7 +72,12 @@ def align_frames(
     aligned: list[AlignedFrame] = []
 
     for frame in calibrated:
-        valid = (~frame.bad_mask) & np.isfinite(frame.image) & np.isfinite(frame.variance) & (frame.variance > 0)
+        valid = (
+            (~frame.bad_mask)
+            & np.isfinite(frame.image)
+            & np.isfinite(frame.variance)
+            & (frame.variance > 0)
+        )
         img_clean = np.where(valid, frame.image, 0.0).astype(np.float32)
         var_clean = np.where(valid, frame.variance, 0.0).astype(np.float32)
         valid_f = valid.astype(np.float32)

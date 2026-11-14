@@ -36,7 +36,9 @@ async def test_ask_fastest_object_out_of_scope_and_prompt_injection(tmp_path: Pa
     ask_svc = AskThisPatchService(settings=settings, llm_provider=TemplateLlmProvider())
 
     # 1. Fastest object deterministic check (FR-32)
-    ans_fast = await ask_svc.answer(obs, evidence, "What is the fastest-moving object in this image?")
+    ans_fast = await ask_svc.answer(
+        obs, evidence, "What is the fastest-moving object in this image?"
+    )
     fastest = max(
         [o for o in obs.detected_objects if o.motion.pm_total_arcsec_yr is not None],
         key=lambda o: o.motion.pm_total_arcsec_yr or 0.0,

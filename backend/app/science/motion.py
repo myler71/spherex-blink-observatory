@@ -1,9 +1,9 @@
 import math
 
-from astropy.coordinates import SkyCoord, get_body_barycentric_posvel
-from astropy.time import Time
 import astropy.units as u
 import numpy as np
+from astropy.coordinates import SkyCoord, get_body_barycentric_posvel
+from astropy.time import Time
 
 from app.config import Settings
 from app.schemas.observe import MotionMeasurement
@@ -83,9 +83,7 @@ def fit_motion(
     pm_total = float(math.hypot(mu_ra_cosdec, mu_dec))
     if pm_total > 1e-6:
         pm_err = float(
-            math.sqrt(
-                ((mu_ra_cosdec * err_ra) ** 2 + (mu_dec * err_dec) ** 2) / (pm_total**2)
-            )
+            math.sqrt(((mu_ra_cosdec * err_ra) ** 2 + (mu_dec * err_dec) ** 2) / (pm_total**2))
         )
     else:
         pm_err = float(math.hypot(err_ra, err_dec))
