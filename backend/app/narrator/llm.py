@@ -93,7 +93,7 @@ class OpenAICompatibleLlmProvider:
             "model": self.settings.llm_model or "gpt-4o-mini",
             "api_key": self.settings.llm_api_key,
             "temperature": 0.1,
-            "timeout": 25.0,
+            "timeout": 60.0,
         }
         if self.settings.llm_base_url:
             kwargs["base_url"] = self.settings.llm_base_url
@@ -130,9 +130,17 @@ class OpenAICompatibleLlmProvider:
             }
         )
         resp = await chat.ainvoke([("system", sys_msg), ("human", user_msg)])
-        parsed = json.loads(str(resp.content))
-        if isinstance(parsed, dict) and "chapters" in parsed:
-            return list(parsed["chapters"])[:5]
+        raw_txt = str(resp.content).strip()
+        if raw_txt.startswith("```"):
+            import re
+            raw_txt = re.sub(r"^```[a-zA-Z]*\n", "", raw_txt)
+            raw_txt = re.sub(r"\n```$", "", raw_txt).strip()
+        try:
+            parsed = json.loads(raw_txt)
+            if isinstance(parsed, dict) and "chapters" in parsed:
+                return list(parsed["chapters"])[:5]
+        except Exception:
+            pass
         return [[], [], [], [], []]
 
     async def answer_question(
