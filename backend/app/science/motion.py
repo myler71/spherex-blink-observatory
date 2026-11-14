@@ -25,10 +25,14 @@ def _weighted_linear_fit(
     t_yr: np.ndarray, y_mas: np.ndarray, sigma_mas: np.ndarray
 ) -> tuple[float, float, float, float]:
     """Weighted least squares y = a + b * t. Returns (a, b, b_err, chi2)."""
-    w = 1.0 / np.maximum(sigma_mas, 1e-3) ** 2
+    safe_sigma = np.where(np.isfinite(sigma_mas) & (sigma_mas > 0.0), sigma_mas, 1000.0)
+    w = 1.0 / np.maximum(safe_sigma, 1e-3) ** 2
     X = np.column_stack([np.ones_like(t_yr), t_yr])
     XtWX = X.T @ (w[:, None] * X)
-    cov = np.linalg.inv(XtWX)
+    try:
+        cov = np.linalg.inv(XtWX)
+    except np.linalg.LinAlgError:
+        cov = np.linalg.pinv(XtWX)
     beta = cov @ (X.T @ (w * y_mas))
     resid = y_mas - X @ beta
     chi2 = float(np.sum(w * resid**2))
@@ -69,7 +73,11 @@ def fit_motion(
 
     px_scale_mas = pixel_scale_arcsec * 1000.0
     sigma_mas = np.array(
-        [max(o.centroid_err_px, 0.08) * px_scale_mas for o in obs],
+        [
+            (min(max(o.centroid_err_px, 0.08), 5.0) if math.isfinite(o.centroid_err_px) else 0.5)
+            * px_scale_mas
+            for o in obs
+        ],
         dtype=np.float64,
     )
 

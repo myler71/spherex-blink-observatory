@@ -111,8 +111,12 @@ def extract_sources(frame: AlignedFrame, settings: Settings) -> list[FrameDetect
         # Centroid uncertainty from second-moment variances with 0.08 px floor
         x2_err = float(objs["errx2"][i]) if "errx2" in objs.dtype.names else 0.0
         y2_err = float(objs["erry2"][i]) if "erry2" in objs.dtype.names else 0.0
-        c_err = float(np.sqrt(max(0.0, x2_err) + max(0.0, y2_err)))
-        c_err = max(c_err, 0.08, 0.6 / max(snr, 1.0))
+        c_raw = (
+            float(np.sqrt(max(0.0, x2_err) + max(0.0, y2_err)))
+            if (np.isfinite(x2_err) and np.isfinite(y2_err))
+            else 0.0
+        )
+        c_err = min(max(c_raw, 0.08, 0.6 / max(snr, 1.0)), 2.0)
         wl_i = (
             float(wls[i])
             if np.isfinite(wls[i])
