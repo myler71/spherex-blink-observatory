@@ -99,6 +99,8 @@ class IrsaArchiveAdapter:
                     )
                 )
             return out
+        except (httpx.TimeoutException, httpx.HTTPError) as exc:
+            raise RuntimeError(f"IRSA archive search failed: {exc}") from exc
         finally:
             if own_client:
                 await client.aclose()

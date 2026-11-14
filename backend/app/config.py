@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     spherex_cutout_min_fov_deg: float = 0.01
     spherex_cutout_max_fov_deg: float = 0.5
     spherex_cutout_concurrency: int = 6
-    spherex_http_timeout_sec: float = 30.0
+    spherex_http_timeout_sec: float = 75.0
     spherex_http_retries: int = 2
     spherex_max_frames_cap: int = 24
     spherex_default_max_frames: int = 12
