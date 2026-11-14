@@ -473,8 +473,12 @@ class ObservePipeline:
                         identifier=ident,
                         otype=str(best_row.get("otype")) if best_row.get("otype") else None,
                         separation_arcsec=round(best_sep, 3),
-                        ra_deg=float(best_row.get("ra_epoch") or best_row["ra"]),
-                        dec_deg=float(best_row.get("dec_epoch") or best_row["dec"]),
+                        ra_deg=float(best_row["ra_epoch"])
+                        if best_row.get("ra_epoch") is not None
+                        else float(best_row["ra"]),
+                        dec_deg=float(best_row["dec_epoch"])
+                        if best_row.get("dec_epoch") is not None
+                        else float(best_row["dec"]),
                         url=best_row.get("url"),
                         metadata=best_row,
                     )

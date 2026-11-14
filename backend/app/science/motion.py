@@ -55,7 +55,8 @@ def fit_motion(
         )
         return meas, None, None, False
 
-    ra0 = float(np.mean([o.ra for o in obs]))
+    ra_rad = np.deg2rad([o.ra for o in obs])
+    ra0 = float(np.rad2deg(np.arctan2(np.mean(np.sin(ra_rad)), np.mean(np.cos(ra_rad)))) % 360.0)
     dec0 = float(np.mean([o.dec for o in obs]))
     cos_dec0 = max(math.cos(math.radians(dec0)), 1e-4)
     t_ref = float(np.mean(mjds))

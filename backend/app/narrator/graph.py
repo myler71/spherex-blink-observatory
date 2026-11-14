@@ -79,6 +79,14 @@ class NarratorOrchestrator:
         observe: ObserveResponse,
         evidence: EvidenceStoreResponse,
     ) -> CosmicNarratorResponse:
+        story, _ = await self.run_with_evidence(observe, evidence)
+        return story
+
+    async def run_with_evidence(
+        self,
+        observe: ObserveResponse,
+        evidence: EvidenceStoreResponse,
+    ) -> tuple[CosmicNarratorResponse, EvidenceStoreResponse]:
         initial: NarratorGraphState = {
             "observe": observe,
             "evidence": evidence,
@@ -91,4 +99,4 @@ class NarratorOrchestrator:
             "node_timings_ms": {},
         }
         out = await self._graph.ainvoke(initial)
-        return out["final_story"]  # type: ignore[no-any-return]
+        return out["final_story"], out.get("evidence", evidence)

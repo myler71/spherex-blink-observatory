@@ -85,7 +85,7 @@ class LocalDocumentStore:
         limit: int = 5,
     ) -> list[dict[str, Any]]:
         tokens = re.findall(r"[A-Za-z0-9_]+", query)
-        fts_expr = " OR ".join(tokens[:12]) if tokens else "SPHEREx"
+        fts_expr = " OR ".join(f'"{t}"' for t in tokens[:12]) if tokens else '"SPHEREx"'
         with self._connect() as conn:
             rows = conn.execute(
                 """

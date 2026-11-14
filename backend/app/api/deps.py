@@ -28,6 +28,10 @@ class SlidingWindowRateLimiter:
         cutoff = now - self.window_sec
         while dq and dq[0] < cutoff:
             dq.popleft()
+        if len(self._hits) > 10_000:
+            stale = [k for k, v in self._hits.items() if not v or v[-1] < cutoff]
+            for k in stale:
+                del self._hits[k]
         if len(dq) >= limit:
             retry_after = max(1, int(self.window_sec - (now - dq[0])))
             raise HTTPException(
@@ -79,7 +83,4 @@ def get_container(request: Request) -> AppContainer:
 
 
 def client_ip_from_request(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"

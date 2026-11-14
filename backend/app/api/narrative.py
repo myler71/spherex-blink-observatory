@@ -89,7 +89,7 @@ async def get_observation_narrative(
             return NarrativeJobResponse(
                 observation_id=observation_id,
                 status="failed",
-                error=str(existing_task.exception()),
+                error="Narrative generation failed",
             )
         story = existing_task.result()
         return NarrativeJobResponse(
@@ -106,11 +106,11 @@ async def get_observation_narrative(
             ads_adapter=container.ads,
             llm_provider=container.llm,
         )
-        story = await orch.run(obs, ev)
+        story, final_ev = await orch.run_with_evidence(obs, ev)
         container.cache.set_json(
             "evidence",
             container.cache.versioned_key(f"ev:{observation_id}"),
-            ev.model_dump(mode="json"),
+            final_ev.model_dump(mode="json"),
         )
         ttl = 60 if story.validation.status == "fallback_template" else None
         container.cache.set_json("narrative", n_key, story.model_dump(mode="json"), ttl_seconds=ttl)

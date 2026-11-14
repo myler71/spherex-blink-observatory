@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -45,8 +46,8 @@ class DatabaseStore:
             async with self._engine.connect() as conn:
                 await conn.execute(text("SELECT 1"))
             return ServiceStatus(status="up")
-        except Exception as exc:
-            return ServiceStatus(status="unavailable", detail=str(exc)[:180])
+        except Exception:
+            return ServiceStatus(status="unavailable", detail="Database connection unavailable")
 
     async def close(self) -> None:
         if self._engine is not None:
@@ -60,8 +61,17 @@ class DatabaseStore:
     ) -> list[dict[str, Any]]:
         if self._sessionmaker is not None:
             try:
+                from sqlalchemy import func, or_
+
                 async with self._sessionmaker() as session:
-                    stmt = select(ScientificDocumentORM).limit(limit * 3)
+                    conditions = [
+                        ScientificDocumentORM.tsv.op("@@")(func.plainto_tsquery("english", query))
+                    ]
+                    if object_identifiers:
+                        conditions.append(
+                            ScientificDocumentORM.object_identifiers.overlap(object_identifiers)
+                        )
+                    stmt = select(ScientificDocumentORM).where(or_(*conditions)).limit(limit * 3)
                     rows = (await session.execute(stmt)).scalars().all()
                     if rows:
                         wanted = {x.lower() for x in (object_identifiers or [])}
@@ -91,7 +101,7 @@ class DatabaseStore:
                             return scored[:limit]
             except Exception:
                 pass
-        return self.docs_fallback.search(query, object_identifiers=object_identifiers, limit=limit)
+        return await asyncio.to_thread(self.docs_fallback.search, query, object_identifiers, limit)
 
     async def create_candidate(self, payload: CandidateCreate) -> CandidateRecord:
         cid = f"cand_{uuid.uuid4().hex[:12]}"

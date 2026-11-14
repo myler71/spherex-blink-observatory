@@ -104,7 +104,10 @@ def link_detections(
                 assigned_tracks.add(tr_idx)
                 tr = tracks[tr_idx]
                 tr.observations.append(dets[det_idx])
-                tr.mean_ra = float(np.mean([o.ra for o in tr.observations]))
+                ra_rad = np.deg2rad([o.ra for o in tr.observations])
+                tr.mean_ra = float(
+                    np.rad2deg(np.arctan2(np.mean(np.sin(ra_rad)), np.mean(np.cos(ra_rad)))) % 360.0
+                )
                 tr.mean_dec = float(np.mean([o.dec for o in tr.observations]))
                 tr.mean_x = float(np.mean([o.x for o in tr.observations]))
                 tr.mean_y = float(np.mean([o.y for o in tr.observations]))

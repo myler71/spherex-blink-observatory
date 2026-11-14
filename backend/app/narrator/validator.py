@@ -21,18 +21,16 @@ CHAPTER_TITLES: list[str] = [
 
 _BANNED_PHRASES_RE = re.compile(
     r"\b("
-    r"planet\s*nine|"
-    r"planet\s*9|"
-    r"planet\s*x|"
-    r"ninth\s*planet|"
+    r"planet[\s-]*(nine|9|x)|"
+    r"(ninth|9th)[\s-]*planet|"
     r"confirmed\s*discovery|"
     r"first\s*detection|"
-    r"discovered\s+(a\s+)?new\s+planet"
+    r"discovered\s+(a\s+)?(new\s+)?planet"
     r")\b",
     re.IGNORECASE,
 )
 
-_NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])[-+]?\d+(?:\.\d+)?(?![A-Za-z0-9_])")
+_NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])[-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?")
 
 
 def _extract_numeric_values(payload: dict[str, Any]) -> list[float]:

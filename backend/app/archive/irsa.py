@@ -15,7 +15,13 @@ _SAFE_URI_RE = re.compile(r"^/?[A-Za-z0-9_./-]+$")
 
 def validate_irsa_relative_uri(raw_uri: str) -> str:
     uri = raw_uri.strip()
-    if not uri or "://" in uri or ".." in uri or not _SAFE_URI_RE.match(uri):
+    if (
+        not uri
+        or "://" in uri
+        or uri.startswith("//")
+        or ".." in uri
+        or not _SAFE_URI_RE.match(uri)
+    ):
         raise ValueError(f"Unsafe IRSA artifact URI rejected: {raw_uri!r}")
     return uri if uri.startswith("/") else f"/{uri}"
 

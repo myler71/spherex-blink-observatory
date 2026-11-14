@@ -193,14 +193,29 @@ class AskThisPatchService:
             res = await self.llm_provider.answer_question(q_clean, evidence)
             raw_ans = str(res.get("answer") or "")
             if raw_ans and not _BANNED_PHRASES_RE.search(raw_ans):
-                return AskResponse(
-                    observation_id=observe.observation_id,
-                    question=q_clean,
-                    answer=raw_ans,
-                    in_scope=True,
-                    claims=[],
-                    validation=ValidationSummary(status="passed"),
-                )
+                from app.narrator.validator import _NUMBER_RE, _matches_value
+
+                ev_nums = [
+                    float(v)
+                    for e in evidence.items
+                    for v in e.fact_payload.values()
+                    if isinstance(v, (int, float)) and not isinstance(v, bool)
+                ]
+                stmt_no_ids = re.sub(r"\bobj_\d+\b", " ", raw_ans)
+                unverified = [
+                    m.group(0)
+                    for m in _NUMBER_RE.finditer(stmt_no_ids)
+                    if not any(_matches_value(float(m.group(0)), n) for n in ev_nums)
+                ]
+                if not unverified:
+                    return AskResponse(
+                        observation_id=observe.observation_id,
+                        question=q_clean,
+                        answer=raw_ans,
+                        in_scope=True,
+                        claims=[],
+                        validation=ValidationSummary(status="passed"),
+                    )
 
         return AskResponse(
             observation_id=observe.observation_id,
