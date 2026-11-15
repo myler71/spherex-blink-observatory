@@ -1,4 +1,4 @@
-.PHONY: setup test test-live lint format typecheck run precache benchmarks coverage
+.PHONY: setup test test-live lint format typecheck run run-frontend precache benchmarks warm-verifications coverage
 
 PYTHON := .venv/bin/python
 PYTEST := .venv/bin/pytest
@@ -31,8 +31,14 @@ typecheck:
 run:
 	PYTHONPATH=backend $(UVICORN) app.main:app --host 0.0.0.0 --port 8000
 
+run-frontend:
+	python3 -u -m http.server 4173 --bind 0.0.0.0 --directory frontend
+
 precache:
 	PYTHONPATH=backend $(PYTHON) -m app.jobs.precache
 
 benchmarks:
 	PYTHONPATH=backend $(PYTHON) -m app.jobs.run_benchmarks
+
+warm-verifications:
+	PYTHONPATH=backend $(PYTHON) -m app.jobs.warm_five_verifications
