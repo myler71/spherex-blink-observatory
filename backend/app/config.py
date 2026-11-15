@@ -83,6 +83,7 @@ class Settings(BaseSettings):
     horizons_api_url: str = "https://ssd.jpl.nasa.gov/api/horizons.api"
     nasa_ads_api_token: str = ""
     nasa_ads_api_url: str = "https://api.adsabs.harvard.edu/v1/search/query"
+    tavily_api_key: str = ""
     catalog_timeout_sec: float = 6.0
 
     # Storage & Cache

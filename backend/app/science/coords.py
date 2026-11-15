@@ -74,3 +74,12 @@ def propagate_skycoord(
 def constellation_for_coord(ra_deg: float, dec_deg: float) -> str:
     coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg, frame="icrs")
     return str(get_constellation(coord))
+
+
+def angular_separation_key(ra: float, dec: float, other_ra: float, other_dec: float) -> float:
+    """Haversine separation key: spherical ordering without inverse trig."""
+    lat, other_lat = math.radians(dec), math.radians(other_dec)
+    return (
+        math.sin((lat - other_lat) / 2.0) ** 2
+        + math.cos(lat) * math.cos(other_lat) * math.sin(math.radians(ra - other_ra) / 2.0) ** 2
+    )
