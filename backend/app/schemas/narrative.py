@@ -24,12 +24,15 @@ SourceType = Literal[
     "SIMBAD Catalog",
     "AllWISE Catalog",
     "Peer-Reviewed Paper",
+    "NASA Web Resource",
 ]
 
 
 class EvidenceItem(BaseModel):
     evidence_id: str
-    evidence_type: Literal["measurement", "catalogue_entry", "paper", "observation_metadata"]
+    evidence_type: Literal[
+        "measurement", "catalogue_entry", "paper", "observation_metadata", "web_page"
+    ]
     source_name: str
     source_type: SourceType
     reference_id: str
@@ -113,4 +116,5 @@ class AskResponse(BaseModel):
     answer: str
     in_scope: bool
     claims: list[InteractiveStoryClaim] = Field(default_factory=list)
+    sources: list[CitationItem] = Field(default_factory=list)
     validation: ValidationSummary
