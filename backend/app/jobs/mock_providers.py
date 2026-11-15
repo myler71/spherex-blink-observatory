@@ -1,9 +1,9 @@
 import json
 from typing import Any
 
+import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-import uvicorn
 
 app = FastAPI(title="SPHEREx Mock External Providers (ADS & LLM)")
 
@@ -123,7 +123,9 @@ async def chat_completions(request: Request) -> JSONResponse:
     response_content = json.dumps(story_payload)
     if "untrusted_question" in user_content:
         # Ask This Patch answer
-        response_content = "This patch contains multi-epoch SPHEREx spectral images and verified catalog matches."
+        response_content = (
+            "This patch contains multi-epoch SPHEREx spectral images and verified catalog matches."
+        )
 
     return JSONResponse(
         {

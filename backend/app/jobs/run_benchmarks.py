@@ -11,6 +11,7 @@ from app.archive.irsa import IrsaArchiveAdapter
 from app.config import Settings, get_settings
 from app.schemas.benchmarks import BenchmarkRunResponse, BenchmarkTargetResult
 from app.schemas.observe import ObserveQuery
+from app.science.coords import angular_separation_key
 from app.science.pipeline import ObservePipeline
 from app.science.targets import list_target_presets
 from app.store.cache import CacheStore
@@ -76,7 +77,7 @@ async def run_benchmarks(
                         num_visits=obs.selection.visits_count,
                         baseline_days=obs.selection.baseline_days,
                         processing_ms=elapsed_ms,
-                        status="inconclusive",
+                        status="inconclusive" if data_source == "real" else "fail",
                         reason="No sources detected above SNR threshold.",
                     )
                 )
@@ -85,10 +86,15 @@ async def run_benchmarks(
             # Evaluate primary detected object near field center
             primary = min(
                 obs.detected_objects,
-                key=lambda o: abs(o.ra - obs.query.ra) + abs(o.dec - obs.query.dec),
+                key=lambda o: angular_separation_key(o.ra, o.dec, obs.query.ra, obs.query.dec),
             )
             if preset.is_negative_control:
-                passed = (not primary.is_candidate_moving) and (not primary.is_variable)
+                measured = (
+                    primary.motion.pm_total_arcsec_yr is not None
+                    and primary.motion.pm_total_err_mas_yr is not None
+                    and any(b.reduced_chi2 is not None for b in primary.variability)
+                )
+                passed = measured and not primary.is_candidate_moving and not primary.is_variable
                 results.append(
                     BenchmarkTargetResult(
                         target_id=preset.id,
@@ -98,34 +104,47 @@ async def run_benchmarks(
                         reference_value=ref_val,
                         reference_citation=preset.citation,
                         measured_value=f"pm={primary.motion.pm_total_arcsec_yr} arcsec/yr, var={primary.is_variable}",
+                        measured_uncertainty=(
+                            f"{primary.motion.pm_total_err_mas_yr / 1000.0:.3f} arcsec/yr"
+                            if primary.motion.pm_total_err_mas_yr is not None
+                            else None
+                        ),
                         snr=primary.snr,
                         num_visits=obs.selection.visits_count,
                         baseline_days=obs.selection.baseline_days,
                         processing_ms=elapsed_ms,
-                        status="pass" if passed else "fail",
+                        status="pass"
+                        if passed
+                        else ("inconclusive" if not measured and data_source == "real" else "fail"),
                         reason="Negative control static & non-variable"
                         if passed
-                        else "Unexpected motion/variability",
+                        else (
+                            "Insufficient motion/variability measurements"
+                            if not measured
+                            else "Unexpected motion/variability"
+                        ),
                     )
                 )
             elif preset.recommended_mode == "motion":
-                fastest = max(
-                    obs.detected_objects,
-                    key=lambda o: o.motion.pm_total_arcsec_yr or 0.0,
+                pm_meas = primary.motion.pm_total_arcsec_yr
+                pm_err = (
+                    primary.motion.pm_total_err_mas_yr / 1000.0
+                    if primary.motion.pm_total_err_mas_yr is not None
+                    else None
                 )
-                pm_meas = fastest.motion.pm_total_arcsec_yr
-                pm_err = (fastest.motion.pm_total_err_mas_yr or 500.0) / 1000.0
                 exp_pm = preset.expected_pm_arcsec_yr or 0.0
-                if pm_meas is None:
-                    st: Literal["pass", "fail", "inconclusive"] = "inconclusive"
-                    reason = "Proper motion not fitted."
+                if pm_meas is None or pm_err is None:
+                    st: Literal["pass", "fail", "inconclusive"] = (
+                        "inconclusive" if data_source == "real" else "fail"
+                    )
+                    reason = "Proper motion or fitted uncertainty is unavailable."
                     resid = None
                 else:
                     diff = abs(pm_meas - exp_pm)
                     resid = f"{diff:.3f} arcsec/yr"
-                    if fastest.is_candidate_moving and diff <= max(3.0 * pm_err, 2.0):
+                    if primary.is_candidate_moving and diff <= max(3.0 * pm_err, 2.0):
                         st = "pass"
-                        reason = "Measured motion consistent with catalog within 3-sigma."
+                        reason = "Nearest-center source is consistent within max(3σ, 2 arcsec/yr); identity is not verified."
                     else:
                         st = "inconclusive" if data_source == "real" else "fail"
                         reason = f"Measured {pm_meas:.3f} vs reference {exp_pm:.3f} arcsec/yr."
@@ -138,9 +157,11 @@ async def run_benchmarks(
                         reference_value=ref_val,
                         reference_citation=preset.citation,
                         measured_value=f"{pm_meas} arcsec/yr" if pm_meas is not None else None,
-                        measured_uncertainty=f"{pm_err:.3f} arcsec/yr",
+                        measured_uncertainty=f"{pm_err:.3f} arcsec/yr"
+                        if pm_err is not None
+                        else None,
                         residual=resid,
-                        snr=fastest.snr,
+                        snr=primary.snr,
                         num_visits=obs.selection.visits_count,
                         baseline_days=obs.selection.baseline_days,
                         processing_ms=elapsed_ms,
@@ -150,9 +171,10 @@ async def run_benchmarks(
                 )
             else:
                 # Variability mode
-                var_objs = [o for o in obs.detected_objects if o.is_variable]
                 st_v: Literal["pass", "fail", "inconclusive"] = (
-                    "pass" if (var_objs and not primary.is_candidate_moving) else "inconclusive"
+                    "pass"
+                    if primary.is_variable and not primary.is_candidate_moving
+                    else ("inconclusive" if data_source == "real" else "fail")
                 )
                 results.append(
                     BenchmarkTargetResult(
@@ -162,7 +184,7 @@ async def run_benchmarks(
                         data_source=data_source,
                         reference_value=ref_val,
                         reference_citation=preset.citation,
-                        measured_value=f"variable={bool(var_objs)}, moving={primary.is_candidate_moving}",
+                        measured_value=f"variable={primary.is_variable}, moving={primary.is_candidate_moving}",
                         snr=primary.snr,
                         num_visits=obs.selection.visits_count,
                         baseline_days=obs.selection.baseline_days,
