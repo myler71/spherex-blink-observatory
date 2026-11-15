@@ -44,6 +44,9 @@ class IrsaArchiveAdapter:
         ra_deg: float,
         dec_deg: float,
         releases: list[str] | None = None,
+        *,
+        timeout: float | None = None,
+        retries: int | None = None,
     ) -> list[ArchiveObservationMeta]:
         target_releases = releases or list(self.settings.spherex_releases)
         rel_list_sql = ", ".join(
@@ -64,13 +67,22 @@ class IrsaArchiveAdapter:
 
         own_client = self._client is None
         client = self._client or httpx.AsyncClient()
+        search_timeout = (
+            timeout if timeout is not None else min(self.settings.spherex_http_timeout_sec, 12.0)
+        )
+        search_retries = (
+            retries if retries is not None else min(self.settings.spherex_http_retries, 1)
+        )
+        total_deadline = search_timeout * (search_retries + 1) + 1.0
+
         try:
             resp = await request_with_retries(
                 client,
                 "POST",
                 self.settings.irsa_tap_url,
-                timeout=self.settings.spherex_http_timeout_sec,
-                retries=self.settings.spherex_http_retries,
+                timeout=search_timeout,
+                retries=search_retries,
+                total_timeout=total_deadline,
                 data={"QUERY": sql, "LANG": "ADQL", "FORMAT": "csv"},
             )
             rows = parse_csv_rows(resp.text)
@@ -100,7 +112,9 @@ class IrsaArchiveAdapter:
                 )
             return out
         except (httpx.TimeoutException, httpx.HTTPError) as exc:
-            raise RuntimeError(f"IRSA archive search failed: {exc}") from exc
+            exc_type = type(exc).__name__
+            err_msg = str(exc).strip() or f"{exc_type} after {search_timeout:.1f}s"
+            raise RuntimeError(f"IRSA TAP archive search failed ({exc_type}): {err_msg}") from exc
         finally:
             if own_client:
                 await client.aclose()
@@ -154,6 +168,7 @@ class IrsaArchiveAdapter:
                         url,
                         timeout=self.settings.spherex_http_timeout_sec,
                         retries=self.settings.spherex_http_retries,
+                        total_timeout=45.0,
                     )
                     raw = resp.content
                     # Validate returned bytes are a readable FITS file
@@ -175,11 +190,16 @@ class IrsaArchiveAdapter:
                         local_path=saved,
                     )
                 except Exception as exc:
+                    exc_type = type(exc).__name__
+                    err_msg = str(exc).strip() or f"{exc_type} timeout or download error"
+                    formatted_error = (
+                        f"{exc_type}: {err_msg}" if not err_msg.startswith(exc_type) else err_msg
+                    )
                     return CutoutFetchResult(
                         obs_id=obs.obs_id,
                         archive_url=url,
                         local_path=None,
-                        error=str(exc)[:200],
+                        error=formatted_error[:200],
                     )
 
         try:
