@@ -85,7 +85,10 @@ def _gaussian_stamp(
 ) -> np.ndarray:
     yy, xx = np.mgrid[0:ny, 0:nx]
     norm = 1.0 / (2.0 * np.pi * sigma_px * sigma_px)
-    return flux * norm * np.exp(-(((xx - x0) ** 2 + (yy - y0) ** 2) / (2.0 * sigma_px**2)))
+    return np.asarray(
+        flux * norm * np.exp(-(((xx - x0) ** 2 + (yy - y0) ** 2) / (2.0 * sigma_px**2))),
+        dtype=np.float64,
+    )
 
 
 def _build_wcs_wave_hdu(
