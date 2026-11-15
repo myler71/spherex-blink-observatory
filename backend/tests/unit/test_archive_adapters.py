@@ -90,7 +90,9 @@ async def test_irsa_cutout_cache_hit_and_partial_failure(tmp_path: Path) -> None
 
 @pytest.mark.asyncio
 async def test_simbad_mirror_failover_on_404_and_gaia_truncation() -> None:
-    settings = Settings(
+    settings = Settings(  # type: ignore[call-arg]
+        _env_file=None,
+        nasa_ads_api_token="",
         simbad_tap_urls=[
             "https://primary.simbad.test/sim-tap/sync",
             "https://mirror.simbad.test/sim-tap/sync",
@@ -144,3 +146,114 @@ async def test_simbad_mirror_failover_on_404_and_gaia_truncation() -> None:
     _ = CadcNeossatAdapter(settings, client)
     _ = HorizonsAdapter(settings, client)
     await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_irsa_tap_search_read_timeout_bounded_and_informative(tmp_path: Path) -> None:
+    settings = Settings(
+        cache_dir=str(tmp_path / "cache"),
+        spherex_http_timeout_sec=75.0,
+        spherex_http_retries=2,
+    )
+    cache = CacheStore(settings)
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        raise httpx.ReadTimeout("")  # Simulate blank ReadTimeout from socket
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    adapter = IrsaArchiveAdapter(settings=settings, cache=cache, client=client)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        await adapter.search_observations(269.45, 4.73)
+
+    err = str(exc_info.value)
+    assert "IRSA TAP archive search failed" in err
+    assert "ReadTimeout" in err
+    assert "TAP/sync" in err
+    assert err != "IRSA archive search failed: "
+    # Bounded retries: search_retries defaults to min(retries, 1) = 1 (2 attempts total)
+    assert calls["n"] == 2
+    await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_irsa_cutout_error_formatting_never_empty(tmp_path: Path) -> None:
+    settings = Settings(cache_dir=str(tmp_path / "cache"))
+    cache = CacheStore(settings)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("")
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    adapter = IrsaArchiveAdapter(settings=settings, cache=cache, client=client)
+
+    obs = [
+        ArchiveObservationMeta(
+            obs_id="OBS_TIMEOUT",
+            plane_id="P1",
+            collection="spherex_dr1",
+            mjd_start=60800.0,
+            mjd_end=60800.01,
+            bandpass="SPHEREx-D1",
+            provenance_version="7.0.5",
+            raw_uri="ibe/data/spherex/timeout.fits",
+            cutout_url="https://irsa.ipac.caltech.edu/ibe/data/spherex/timeout.fits?center=10,10d&size=0.08",
+        )
+    ]
+    res = await adapter.fetch_cutouts(obs, 10.0, 10.0, 0.08)
+    assert res[0].local_path is None
+    assert res[0].error is not None
+    assert len(res[0].error) > 0
+    assert "ReadTimeout" in res[0].error
+    await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_request_with_retries_total_timeout_and_empty_error() -> None:
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        raise httpx.ReadTimeout("")
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    from app.archive.http_client import request_with_retries
+
+    with pytest.raises(httpx.ReadTimeout) as exc_info:
+        await request_with_retries(
+            client,
+            "GET",
+            "https://test.archive/item",
+            timeout=5.0,
+            retries=1,
+            total_timeout=10.0,
+        )
+    err = str(exc_info.value)
+    assert "ReadTimeout" in err
+    assert "GET https://test.archive/item" in err
+    assert calls["n"] == 2
+    await client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_total_timeout_interrupts_stalled_request() -> None:
+    import asyncio
+
+    from app.archive.http_client import request_with_retries
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        await asyncio.sleep(1)
+        return httpx.Response(200, text="late")
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(httpx.ReadTimeout, match="Overall timeout"):
+            await request_with_retries(
+                client,
+                "GET",
+                "https://test.archive/stalled",
+                timeout=5,
+                retries=0,
+                total_timeout=0.02,
+            )
