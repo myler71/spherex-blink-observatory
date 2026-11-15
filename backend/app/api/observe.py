@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.api.deps import AppContainer, client_ip_from_request, get_container
 from app.schemas.observe import ObserveQuery, ObserveResponse, SpectrumResponse
-from app.science.coords import parse_ra_dec
+from app.science.coords import angular_separation_key, parse_ra_dec
 from app.science.targets import get_target_preset
 
 router = APIRouter(tags=["observe"])
@@ -103,9 +103,12 @@ async def observe_patch(
 
     loop = asyncio.get_running_loop()
     fut: asyncio.Future[ObserveResponse] = loop.create_future()
+    # Retrieve unobserved exceptions without changing what coalesced awaiters receive.
+    fut.add_done_callback(lambda done: None if done.cancelled() else done.exception())
     container.inflight_observe[cache_key] = fut
     try:
-        result = await container.pipeline.run(obs_query)
+        async with asyncio.timeout(70.0):
+            result = await container.pipeline.run(obs_query)
         stamped = result.model_copy(update={"cached_at": datetime.now(UTC).isoformat()})
         container.cache.set_json("observe", cache_key, stamped.model_dump(mode="json"))
         if not fut.done():
@@ -119,16 +122,57 @@ async def observe_patch(
         if not fut.done():
             fut.set_exception(err)
         raise err from exc
-    except RuntimeError as exc:
+    except (RuntimeError, TimeoutError) as exc:
+        msg = str(exc).strip() or (
+            "Observation pipeline timeout after 70 seconds"
+            if isinstance(exc, TimeoutError)
+            else "Upstream SPHEREx archive operation failed"
+        )
+        msg_lower = msg.lower()
+
+        if "timeout" in msg_lower or "timed out" in msg_lower or "504" in msg_lower:
+            if "archive" in msg_lower or "tap" in msg_lower or "search" in msg_lower:
+                err_code = "UPSTREAM_ARCHIVE_TIMEOUT"
+                stage = "archive_search"
+            else:
+                err_code = "UPSTREAM_TIMEOUT"
+                stage = "pipeline" if "pipeline" in msg_lower else "cutout_fetch"
+        elif "archive" in msg_lower or "tap" in msg_lower or "search" in msg_lower:
+            err_code = "UPSTREAM_ARCHIVE_FAILURE"
+            stage = "archive_search"
+        else:
+            err_code = "UPSTREAM_CUTOUT_FAILURE"
+            stage = "cutout_fetch"
+
         err = HTTPException(
             status_code=502,
-            detail={"code": "UPSTREAM_CUTOUT_FAILURE", "message": str(exc)},
+            detail={
+                "code": err_code,
+                "message": msg,
+                "details": {
+                    "stage": stage,
+                    "error_type": type(exc).__name__,
+                },
+            },
+        )
+        if not fut.done():
+            fut.set_exception(err)
+        raise err from exc
+    except Exception as exc:
+        err = HTTPException(
+            status_code=500,
+            detail={
+                "code": "INTERNAL_ERROR",
+                "message": f"Observe pipeline error ({type(exc).__name__}): {exc}",
+            },
         )
         if not fut.done():
             fut.set_exception(err)
         raise err from exc
     finally:
         container.inflight_observe.pop(cache_key, None)
+        if not fut.done():
+            fut.set_exception(RuntimeError("Observe request aborted or cancelled"))
 
 
 @router.get("/observe/{observation_id}", response_model=ObserveResponse)
@@ -171,7 +215,7 @@ async def get_observation_spectrum(
     elif ra is not None and dec is not None and obs.detected_objects:
         target_obj = min(
             obs.detected_objects,
-            key=lambda o: abs(o.ra - ra) + abs(o.dec - dec),
+            key=lambda o: angular_separation_key(o.ra, o.dec, ra, dec),
         )
     elif obs.detected_objects:
         target_obj = obs.detected_objects[0]

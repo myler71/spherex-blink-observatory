@@ -30,3 +30,20 @@ All routes are served under `/api/v1` and match the generated OpenAPI specificat
 | `GET /api/v1/candidates` | List citizen-flagged candidate detections | `200` |
 | `POST /api/v1/candidates` | Create a candidate from an observation + object | `201`, `422` |
 | `POST /api/v1/candidates/{candidate_id}/votes` | Vote `Real Motion` / `Variable Star` / `Artifact` (1 vote per `client_fingerprint`) | `200`, `404`, `409`, `422` |
+
+## NASA web search for questions
+
+Set `TAVILY_API_KEY` in the backend environment to enable Tavily for general
+in-scope questions. Search is restricted to `nasa.gov` and `ipac.caltech.edu`;
+returned snippets are untrusted external context, and `sources` lists retrieved
+pages, not independently verified citations for each statement. Existing
+observation evidence remains available if Tavily is unavailable. Queries are
+sent to Tavily and consume API credits. Restart the backend after changing the key.
+
+Example using a cached observation:
+
+```sh
+curl -X POST http://127.0.0.1:8000/api/v1/observe/OBSERVATION_ID/ask \
+  -H 'Content-Type: application/json' \
+  -d '{"question":"What does the SPHEREx spectrum tell us about this patch?"}'
+```
