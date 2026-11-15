@@ -88,7 +88,7 @@ body .intro-section .story-copy.intro-copy{opacity:calc(1 - var(--exit)*.94);tra
 
 /* Editorial telescope campaign: original execution inspired by full-bleed,
    high-contrast product storytelling rather than copied source assets. */
-:root{--accent:#f2f2ee;--paper:#f7f7f3}
+:root{--accent:var(--orvyx-amber);--paper:var(--orvyx-paper);--muted:var(--orvyx-muted);--line:var(--orvyx-hairline)}
 body{background:#030405}.site-header{border-bottom:1px solid #ffffff2b;background:linear-gradient(#030405aa,#03040544);backdrop-filter:blur(12px)}
 .desktop-nav>a{font-size:9px;font-weight:700;letter-spacing:.13em}.new-tag{border-color:#b1b5b5;color:#e8e9e5}
 .header-launch,.button-light{background:#f4f4f0;color:#080909;border-color:#f4f4f0;letter-spacing:.09em;text-transform:uppercase;font-size:9px;font-weight:700}.header-launch:hover,.button-light:hover{background:#cbd1d0;border-color:#cbd1d0;color:#060708}
