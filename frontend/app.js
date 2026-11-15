@@ -268,22 +268,3 @@
   window.ORVYX = { getSettings: () => ({ ...settings }), getProgress: () => window.ORVYX_SCROLL, openVisualStudio: () => openPanel(toggle) };
 })();
 
-// A restrained parallax drift on original editorial imagery; no scroll hijacking.
-(() => {
-  const layers = [...document.querySelectorAll('[data-parallax]')];
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let pending = false;
-  function renderParallax() {
-    pending = false;
-    if (reduced.matches) { layers.forEach(el => el.style.transform = ''); return; }
-    for (const layer of layers) {
-      const rect = layer.parentElement.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > innerHeight) continue;
-      const distance = (innerHeight / 2 - (rect.top + rect.height / 2)) * .065;
-      layer.style.transform = `translate3d(0,${Math.max(-55, Math.min(55,distance))}px,0) scale(1.03)`;
-    }
-  }
-  addEventListener('scroll', () => { if (!pending) {pending = true; requestAnimationFrame(renderParallax);} }, {passive:true});
-  addEventListener('resize', renderParallax);
-  renderParallax();
-})();
