@@ -48,8 +48,8 @@ main,.site-footer{position:relative;z-index:1}main{pointer-events:none}.story-se
    which dissolves into the living 3D telescope on scroll. --exit is 0->1,
    driven from app.js as the slide leaves the viewport. */
 .intro-section{--exit:0;background:transparent;min-height:108svh;padding-top:max(148px,15vh)}
-.intro-section .finale-image{transform:scale(calc(1 + var(--exit)*.14));opacity:calc(1 - var(--exit)*.8);transform-origin:50% 68%;will-change:transform,opacity}
-body .intro-section .story-copy.intro-copy{opacity:calc(1 - var(--exit)*.94);transform:translateY(calc(var(--exit)*-54px)) scale(calc(1 - var(--exit)*.045));transition:none;will-change:transform,opacity}
+.intro-section .finale-image{opacity:calc(1 - var(--exit));will-change:opacity}
+body .intro-section .story-copy.intro-copy{opacity:calc(1 - var(--exit));transform:translateY(calc(var(--exit)*-24px));transition:none;will-change:transform,opacity}
 .intro-section .finale-logo{font-size:clamp(78px,11.5vw,168px)}
 .button-ghost{background:#0b111a66;color:#e9e4da;border-color:#e0e2eb4d;backdrop-filter:blur(10px)}
 .button-ghost:hover{background:#ffffff14;border-color:#dfac7988}
