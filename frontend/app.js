@@ -1,3 +1,5 @@
+import { getStoryState } from './story-state.js';
+
 (() => {
   'use strict';
   document.documentElement.classList.add('js');
@@ -14,6 +16,10 @@
   settings.motion = reducedMotion.matches ? false : Boolean(settings.motion);
   let comparing = false;
   const panel = $('#visualPanel'), toggle = $('#visualToggle');
+  const nativePopover = Boolean(panel && typeof panel.showPopover === 'function');
+  if (panel && !nativePopover) panel.hidden = true;
+  let restorePanelFocus = true;
+  const panelOpen = () => nativePopover ? panel.matches(':popover-open') : !panel.hidden;
   let panelOpener = toggle;
 
   function updateUI() {
@@ -30,6 +36,8 @@
     $('#grainRange').style.setProperty('--range-progress', `${settings.grain}%`);
     $('#qualitySelect').value = settings.quality;
     $('#motionToggle').checked = settings.motion;
+    $('#motionToggle').disabled = reducedMotion.matches || document.body.classList.contains('scene-fallback');
+    $('#motionNote').textContent = reducedMotion.matches ? 'Disabled by your reduced-motion preference.' : '';
     $('#lookStatus').textContent = comparing ? 'RAW' : settings.enabled ? 'ON' : 'OFF';
     $('#lookName').textContent = comparing ? 'Original render' : 'Cinematic finish';
     $('#compareLook').classList.toggle('comparing', comparing);
@@ -39,46 +47,52 @@
     $('#grainRange').disabled = !settings.enabled;
   }
 
-  function applySettings(persist = true) {
+  function applySettings(persist = true, resetAuto = false) {
     const current = { ...settings, enabled: settings.enabled && !comparing };
     window.ORVYX_SETTINGS = current;
     updateUI();
-    window.dispatchEvent(new CustomEvent('orvyx:visuals', { detail: current }));
+    window.dispatchEvent(new CustomEvent('orvyx:visuals', { detail: { ...current, resetAuto } }));
     if (persist) try { localStorage.setItem('orvyx-visual-studio-v1', JSON.stringify(settings)); } catch (_) {}
   }
 
   function openPanel(opener = toggle) {
     if (!panel || !toggle) return;
     panelOpener = opener;
-    panel.hidden = false;
-    toggle.setAttribute('aria-expanded', 'true');
-    $('#closeVisual')?.focus({ preventScroll: true });
+    restorePanelFocus = true;
+    if (nativePopover) { if (!panelOpen()) panel.showPopover(); }
+    else { panel.hidden = false; toggle.setAttribute('aria-expanded', 'true'); $('#closeVisual')?.focus({ preventScroll: true }); }
   }
   function closePanel(restoreFocus = true) {
     if (!panel || !toggle) return;
-    panel.hidden = true;
-    toggle.setAttribute('aria-expanded', 'false');
-    endCompare();
-    if (restoreFocus && panelOpener) panelOpener.focus({ preventScroll: true });
+    restorePanelFocus = restoreFocus;
+    if (nativePopover) { if (panelOpen()) panel.hidePopover(); }
+    else { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); endCompare(); if (restoreFocus && panelOpener) panelOpener.focus({ preventScroll: true }); }
   }
   function startCompare() { comparing = true; applySettings(false); }
   function endCompare() { if (!comparing) return; comparing = false; applySettings(false); }
   if (panel && toggle) {
-    toggle.addEventListener('click', () => panel.hidden ? openPanel(toggle) : closePanel());
-    $('#heroLookButton')?.addEventListener('click', () => panel.hidden ? openPanel($('#heroLookButton')) : closePanel());
-    $('#closeVisual')?.addEventListener('click', () => closePanel());
-    document.addEventListener('pointerdown', e => {
-      if (!panel.hidden && !panel.contains(e.target) && !$('#visualDock')?.contains(e.target) && !$('#heroLookButton')?.contains(e.target)) closePanel(false);
-    });
+    if (nativePopover) {
+      panel.addEventListener('toggle', event => {
+        const open = event.newState === 'open';
+        toggle.setAttribute('aria-expanded', String(open));
+        if (open) { panelOpener = document.activeElement === toggle ? toggle : panelOpener; $('#closeVisual')?.focus({ preventScroll: true }); }
+        else { endCompare(); if (restorePanelFocus && panelOpener) panelOpener.focus({ preventScroll: true }); restorePanelFocus = true; }
+      });
+    } else {
+      toggle.addEventListener('click', () => panel.hidden ? openPanel(toggle) : closePanel());
+      $('#closeVisual')?.addEventListener('click', () => closePanel());
+      document.addEventListener('pointerdown', e => { if (!panel.hidden && !panel.contains(e.target) && !$('#visualDock')?.contains(e.target)) closePanel(false); });
+    }
+    $('#heroLookButton')?.addEventListener('click', () => panelOpen() ? closePanel() : openPanel($('#heroLookButton')));
     $('#finishToggle')?.addEventListener('change', e => { settings.enabled = e.target.checked; applySettings(); });
     $('#atmosphereRange')?.addEventListener('input', e => { settings.bloom = Number(e.target.value); applySettings(); });
     $('#grainRange')?.addEventListener('input', e => { settings.grain = Number(e.target.value); applySettings(); });
-    $('#qualitySelect')?.addEventListener('change', e => { settings.quality = e.target.value; applySettings(); });
+    $('#qualitySelect')?.addEventListener('change', e => { settings.quality = e.target.value; applySettings(true, settings.quality === 'auto'); });
     $('#motionToggle')?.addEventListener('change', e => { settings.motion = e.target.checked; settings.motionOverride = true; applySettings(); });
     $('#resetLook')?.addEventListener('click', () => {
       settings = { ...defaults };
       comparing = false;
-      applySettings();
+      applySettings(true, true);
       if ($('#announcer')) $('#announcer').textContent = 'Default visual finish restored.';
     });
     const compareButton = $('#compareLook');
@@ -105,7 +119,7 @@
   mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   document.addEventListener('pointerdown', e => { if (!mobileNav.hidden && !mobileNav.contains(e.target) && !menuButton.contains(e.target)) closeMenu(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (panel && !panel.hidden) closePanel(); closeMenu(); }
+    if (e.key === 'Escape') { if (panel && !nativePopover && !panel.hidden) closePanel(); closeMenu(); }
   });
 
   const explorerDialog = $('#explorerDialog'), creditsDialog = $('#creditsDialog');
@@ -211,86 +225,74 @@
   const sections = [...document.querySelectorAll('[data-scene]')];
   const chapterLinks = [...document.querySelectorAll('.chapter')];
   let ticking = false;
+  let anchors = [];
+  function cacheAnchors() {
+    anchors = sections.map(section => ({ scene: section.dataset.scene, centerY: section.getBoundingClientRect().top + scrollY + section.offsetHeight / 2 }));
+    updateScroll();
+  }
   function updateScroll() {
     ticking = false;
-    let progress = 0;
-    if (sections.length === 1) {
-      progress = Number(sections[0].dataset.scene ?? 0);
-    } else if (sections.length > 1) {
-      const centers = sections.map(s => s.offsetTop + s.offsetHeight / 2);
-      const center = scrollY + innerHeight / 2;
-      let i = 0;
-      while (i < centers.length - 2 && center > centers[i + 1]) i++;
-      const span = Math.max(1, centers[i + 1] - centers[i]);
-      const fraction = Math.max(0, Math.min(1, (center - centers[i]) / span));
-      const aScene = Number(sections[i].dataset.scene ?? i);
-      const bScene = Number(sections[i + 1].dataset.scene ?? (i + 1));
-      progress = aScene + (bScene - aScene) * fraction;
-    }
-    const nearest = Math.round(progress);
-    let activeIdx = 0, minDist = Infinity;
-    chapterLinks.forEach((link, n) => {
-      const target = link.dataset.chapterTarget !== undefined ? Number(link.dataset.chapterTarget) : n;
-      const dist = Math.abs(target - progress);
-      if (dist < minDist) { minDist = dist; activeIdx = n; }
-    });
-    chapterLinks.forEach((link, n) => {
-      const active = n === activeIdx;
+    const state = getStoryState(anchors, scrollY + innerHeight / 2);
+    const scrollMax = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const previous = window.ORVYX_STORY;
+    chapterLinks.forEach(link => {
+      const active = link.dataset.chapterTarget === state.active;
       link.classList.toggle('active', active);
       if (active) link.setAttribute('aria-current', 'step'); else link.removeAttribute('aria-current');
     });
-    const scrollMax = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    if ($('#readingProgress')) $('#readingProgress').style.transform = `scaleX(${Math.max(0, Math.min(1, scrollY / scrollMax))})`;
-    document.documentElement.style.setProperty('--scene-progress', progress.toFixed(3));
-    document.body.dataset.chapter = nearest;
-    // Opening slide exit: the logo lifts away and the telescope picture
-    // zooms + dissolves while the real 3D telescope grows in behind it.
+    const reading = $('#readingProgress');
+    if (reading) reading.style.transform = `scaleX(${Math.max(0, Math.min(1, scrollY / scrollMax))})`;
+    document.body.dataset.activeScene = state.active;
     const intro = sections[0];
-    if (intro && intro.classList.contains('intro-section')) {
-      const rect = intro.getBoundingClientRect();
-      const exit = Math.max(0, Math.min(1, -rect.top / (innerHeight * .75)));
+    if (intro?.classList.contains('intro-section')) {
+      const exit = state.from === 'intro' && state.to === 'telescope' ? state.mix : state.active === 'intro' ? 0 : 1;
       intro.style.setProperty('--exit', exit.toFixed(3));
       const introCopy = intro.querySelector('.intro-copy');
       if (introCopy) introCopy.style.pointerEvents = exit > .55 ? 'none' : '';
       const introScroll = intro.querySelector('.intro-scroll');
       if (introScroll) introScroll.style.pointerEvents = exit > .3 ? 'none' : '';
     }
-    window.ORVYX_SCROLL = progress;
-    window.dispatchEvent(new CustomEvent('orvyx:scroll', { detail: progress }));
+    if (!previous || previous.from !== state.from || previous.to !== state.to || previous.mix !== state.mix || previous.active !== state.active) {
+      window.ORVYX_STORY = state;
+      window.dispatchEvent(new CustomEvent('orvyx:story', { detail: state }));
+    }
   }
-  updateScroll();
+  cacheAnchors();
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(updateScroll); } }, { passive: true });
-  window.addEventListener('resize', () => {
-    updateScroll();
-    const orbitSpan = $('#orbitButton span');
-    if (orbitSpan && !document.body.classList.contains('scene-fallback')) orbitSpan.textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT';
-  });
-  if ($('#orbitButton span')) $('#orbitButton span').textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT';
+  const orbitTargets = [...document.querySelectorAll('[data-orbit-target]')];
+  orbitTargets.forEach(target => { target.dataset.interactiveLabel = target.getAttribute('aria-label'); });
+  function updateOrbitLabels(webgl = !document.body.classList.contains('scene-fallback')) {
+    orbitTargets.forEach(target => {
+      target.setAttribute('aria-disabled', String(!webgl));
+      target.tabIndex = webgl ? 0 : -1;
+      target.setAttribute('aria-label', webgl ? target.dataset.interactiveLabel : 'Static preview of the illustrative sculpture. WebGL is unavailable.');
+      const button = target.querySelector('[data-orbit-step]');
+      button.disabled = !webgl;
+      button.querySelector('span').textContent = webgl ? innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT' : 'STATIC PREVIEW';
+    });
+  }
+  window.addEventListener('resize', () => { cacheAnchors(); updateOrbitLabels(); });
+  updateOrbitLabels();
   const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }), { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  const resizeObserver = new ResizeObserver(updateScroll);
+  const resizeObserver = new ResizeObserver(cacheAnchors);
   sections.forEach(section => resizeObserver.observe(section));
-  window.addEventListener('orvyx:performance', e => {
-    if (e.detail.reducedAmbient && !settings.motionOverride && settings.quality === 'auto') { settings.motion = false; defaults.motion = false; applySettings(false); }
-  });
+  document.fonts.ready.then(cacheAnchors);
   window.addEventListener('orvyx:ready', e => {
     document.body.classList.toggle('scene-ready', e.detail.webgl);
     document.body.classList.toggle('scene-fallback', !e.detail.webgl);
-    if ($('#orbitButton')) $('#orbitButton').disabled = !e.detail.webgl;
-    if ($('#orbitButton span')) $('#orbitButton span').textContent = e.detail.webgl ? innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT' : 'STATIC PREVIEW';
-    if (!e.detail.webgl) {
-      $('#objectInteraction')?.setAttribute('aria-label', 'Static preview of the artistic SPHEREx model. WebGL is unavailable.');
-      ['finishToggle','atmosphereRange','grainRange','qualitySelect','motionToggle','compareLook','resetLook'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = true;
-      });
-      if ($('.panel-footnote')) $('.panel-footnote').textContent = 'Static preview. Live visual controls require a browser with WebGL.';
-    }
-    if ($('#renderStatus')) $('#renderStatus').textContent = e.detail.webgl ? 'REAL-TIME 3D' : 'STATIC PREVIEW';
+    updateOrbitLabels(e.detail.webgl);
+    ['finishToggle','atmosphereRange','grainRange','qualitySelect','motionToggle','compareLook','resetLook'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = !e.detail.webgl;
+    });
+    if (e.detail.webgl) updateUI();
+    if ($('.panel-footnote')) $('.panel-footnote').textContent = e.detail.webgl ? 'Illustrative visual finish; scientific data is unchanged.' : 'Static preview. Live visual controls require a browser with WebGL.';
+    if ($('#renderStatus')) $('#renderStatus').textContent = !e.detail.webgl ? 'STATIC PREVIEW' : document.body.dataset.model === 'fallback' ? '3D FALLBACK' : 'REAL-TIME 3D';
   });
-  reducedMotion.addEventListener('change', e => { if (e.matches) { settings.motion = false; applySettings(); } });
+  reducedMotion.addEventListener('change', e => { if (e.matches) settings.motion = false; applySettings(); });
   applySettings(false);
   updateScroll();
-  window.ORVYX = { getSettings: () => ({ ...settings }), getProgress: () => window.ORVYX_SCROLL, openVisualStudio: () => openPanel(toggle) };
+  window.ORVYX = { getSettings: () => ({ ...settings }), getStoryState: () => window.ORVYX_STORY, openVisualStudio: () => openPanel(toggle) };
 })();
 
