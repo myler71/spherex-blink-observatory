@@ -172,7 +172,7 @@ if (renderer) {
         }
         const current = materials[i];
         current.envMapIntensity = name.includes('Black') ? .6 : 1.1;
-        if (name.includes('Reflective aluminium')) { current.roughness = .86; current.metalness = 1; }
+        if (name.includes('Reflective aluminium')) { current.roughness = .30; current.metalness = 1; }
         if (name.includes('White thermal')) { current.roughness = .49; current.envMapIntensity = .8; }
         ['map', 'normalMap', 'roughnessMap', 'metalnessMap'].forEach(key => { if (current[key]) current[key].anisotropy = anisotropy; });
       });
