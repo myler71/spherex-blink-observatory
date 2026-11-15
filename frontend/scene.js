@@ -1,9 +1,12 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { createSpherexEffects } from './spherex-effects.js?v=stable-2';
+import { createSpherexEffects } from './spherex-effects.js?v=cinematic-4';
+import { getRenderProfile } from './render-policy.js';
+import { getSceneFraming } from './scene-framing.js';
 
 function initScene() {
 const canvas = document.querySelector('#scene');
+const stage = canvas.parentElement;
 const ready = (webgl, model = false) => window.dispatchEvent(new CustomEvent('orvyx:ready', { detail: { webgl, model } }));
 let renderer;
 try {
@@ -18,35 +21,37 @@ if (renderer) {
   const gl = renderer.getContext();
   const debugRenderer = gl.getExtension('WEBGL_debug_renderer_info');
   const softwareRenderer = Boolean(debugRenderer && /swiftshader|llvmpipe|software/i.test(gl.getParameter(debugRenderer.UNMASKED_RENDERER_WEBGL)));
-  if (softwareRenderer && settings.quality === 'auto' && !settings.motionOverride) {
-    settings.motion = false;
-    window.dispatchEvent(new CustomEvent('orvyx:performance', { detail: { reducedAmbient: true } }));
-  }
-  const effectiveSettings = () => ({ ...settings, quality: softwareRenderer && settings.quality === 'auto' ? 'efficient' : settings.quality });
-  let dirty = true, assetsReady = false, sceneAnnounced = false, failedModel = false;
+  let qualityLevel = softwareRenderer ? 1 : 0;
+  const effectiveSettings = () => settings;
+  let dirty = true, sceneAnnounced = false, announcedModelState = '', failedModel = false;
+  let frameRequest = 0, sceneVisible = true, pageHidden = false, contextLost = false, disposed = false;
   let mobile = innerWidth <= 700;
-  const pixelRatio = () => Math.min(devicePixelRatio || 1, softwareRenderer && settings.quality === 'auto' ? 1 : settings.quality === 'high' ? 2 : settings.quality === 'efficient' ? 1 : mobile ? 1.25 : 1.5);
+  let viewportWidth = Math.max(1, stage.clientWidth), viewportHeight = Math.max(1, stage.clientHeight);
+  let framing = getSceneFraming(viewportWidth, viewportHeight, mobile);
+  const profile = () => getRenderProfile({ quality: settings.quality, mobile, dpr: devicePixelRatio, level: qualityLevel });
+  let currentProfile = profile();
+  const pixelRatio = () => currentProfile.pixelRatio;
   renderer.setPixelRatio(pixelRatio());
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(viewportWidth, viewportHeight, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = .94;
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = currentProfile.shadows;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x05090f);
-  const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, .1, 220);
+  const camera = new THREE.PerspectiveCamera(35, viewportWidth / viewportHeight, .1, 220);
   camera.position.set(0, .65, 16);
   camera.lookAt(.35, .1, 0);
   const loadingManager = new THREE.LoadingManager();
-  loadingManager.onLoad = () => { assetsReady = true; dirty = true; };
-  loadingManager.onProgress = () => { dirty = true; };
+  loadingManager.onLoad = invalidate;
+  loadingManager.onProgress = invalidate;
   const loader = new THREE.TextureLoader(loadingManager);
   const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   function sizeBackground() {
     const background = scene.background;
     if (!background.isTexture || !background.image) return;
-    const imageAspect = background.image.width / background.image.height, aspect = innerWidth / innerHeight;
+    const imageAspect = background.image.width / background.image.height, aspect = viewportWidth / viewportHeight;
     if (aspect < imageAspect) { background.repeat.set(aspect / imageAspect, 1); background.offset.set((1 - background.repeat.x) / 2, 0); }
     else { background.repeat.set(1, imageAspect / aspect); background.offset.set(0, (1 - background.repeat.y) / 2); }
     background.repeat.multiplyScalar(.94);
@@ -54,7 +59,7 @@ if (renderer) {
     background.updateMatrix();
   }
   const backgroundAsset = mobile ? './assets/orbital-noir-mobile.webp' : './assets/orbital-noir.webp';
-  loader.load(backgroundAsset, texture => { texture.colorSpace = THREE.SRGBColorSpace; texture.matrixAutoUpdate = true; scene.background = texture; scene.backgroundIntensity = 1.08; sizeBackground(); dirty = true; });
+  loader.load(backgroundAsset, texture => { texture.colorSpace = THREE.SRGBColorSpace; texture.matrixAutoUpdate = true; scene.background = texture; scene.backgroundIntensity = 1.08; sizeBackground(); invalidate(); });
 
   // Soft HDR reflections keep the insulation and metal dimensional, without
   // painting fake highlights into the model's textures.
@@ -76,7 +81,7 @@ if (renderer) {
   const key = new THREE.DirectionalLight(0xfff3e3, 2.2);
   key.position.set(-5, 9, 9);
   key.castShadow = true;
-  key.shadow.mapSize.set(effectiveSettings().quality === 'efficient' ? 1024 : 2048, effectiveSettings().quality === 'efficient' ? 1024 : 2048);
+  key.shadow.mapSize.set(currentProfile.shadowSize || 1024, currentProfile.shadowSize || 1024);
   Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: .5, far: 38 });
   key.shadow.camera.updateProjectionMatrix();
   key.shadow.bias = -.00015;
@@ -133,6 +138,8 @@ if (renderer) {
 
   // ---------- The supplied GLB, with its original research-guided geometry ----------
   const telescope = new THREE.Group(); scene.add(telescope);
+  let modelLoaded = false;
+  if (document.querySelector('[data-scene="telescope"], [data-scene="mission"]')) {
   const fallback = new THREE.Group(); telescope.add(fallback);
   const silver = new THREE.MeshPhysicalMaterial({ color: 0xc6cbd1, metalness: .95, roughness: .27, side: THREE.DoubleSide, clearcoat: .2 });
   for (let i = 0; i < 3; i++) {
@@ -145,7 +152,6 @@ if (renderer) {
   const bus = mesh(new THREE.CylinderGeometry(.77, .8, 1.2, 6), foil, fallback); bus.position.y = -1.6;
   const cellMat = new THREE.MeshPhysicalMaterial({ color: 0x111e3a, metalness: .4, roughness: .2, clearcoat: 1 });
   for (const x of [-1.4, 1.4]) { const panel = mesh(new THREE.BoxGeometry(1.05, 1.2, .04), cellMat, fallback); panel.position.set(x, -1.45, -.55); }
-  let modelLoaded = false;
   new GLTFLoader(loadingManager).load('./assets/models/spherex.glb', gltf => {
     const model = gltf.scene;
     model.updateMatrixWorld(true);
@@ -153,7 +159,7 @@ if (renderer) {
     const dimensions = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
     const longest = Math.max(dimensions.x, dimensions.y, dimensions.z);
-    if (!(longest > 0) || !Number.isFinite(longest)) { failedModel = true; dirty = true; console.warn('ORVYX: invalid model bounds, using fallback.'); return; }
+    if (!(longest > 0) || !Number.isFinite(longest)) { failedModel = true; document.body.dataset.model = 'fallback'; invalidate(); console.warn('ORVYX: invalid model bounds, using fallback.'); return; }
     const scale = 5.8 / longest;
     model.scale.setScalar(scale);
     model.position.sub(center.multiplyScalar(scale));
@@ -182,8 +188,9 @@ if (renderer) {
     telescope.add(model);
     modelLoaded = true; dirty = true;
     document.body.dataset.model = 'loaded';
-    dirty = true;
-  }, undefined, error => { console.warn('ORVYX: using the real-time 3D fallback.', error); document.body.dataset.model = 'fallback'; failedModel = true; dirty = true; });
+    invalidate();
+  }, undefined, error => { console.warn('ORVYX: using the real-time 3D fallback.', error); document.body.dataset.model = 'fallback'; failedModel = true; invalidate(); });
+  }
 
   // ---------- A quiet field of stars, with real depth and subpixel light falloff ----------
   const starCount = 1900;
@@ -198,6 +205,7 @@ if (renderer) {
   starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   starGeo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+  starGeo.setDrawRange(0, currentProfile.starCount);
   const stars = new THREE.Points(starGeo, new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
     uniforms: { time: { value: 0 }, dpr: { value: renderer.getPixelRatio() } },
@@ -205,20 +213,6 @@ if (renderer) {
     fragmentShader: `varying vec3 vC;void main(){float d=length(gl_PointCoord-.5);float a=pow(smoothstep(.5,0.,d),1.7);gl_FragColor=vec4(vC,a*.8);}`,
   })); scene.add(stars);
 
-  // ---------- An illustrative Earth horizon with surface relief and cloud shell ----------
-  const horizon = new THREE.Group(); horizon.visible = false; scene.add(horizon);
-  const earthMap = loader.load('./assets/earth.jpg'); earthMap.colorSpace = THREE.SRGBColorSpace; earthMap.anisotropy = anisotropy;
-  const earthNormal = loader.load('./assets/earth-normal.jpg'); earthNormal.anisotropy = anisotropy;
-  const cloudMap = loader.load('./assets/earth-clouds.png'); cloudMap.colorSpace = THREE.SRGBColorSpace; cloudMap.anisotropy = anisotropy;
-  const earth = mesh(new THREE.SphereGeometry(28, 128, 80), new THREE.MeshPhysicalMaterial({ color: 0x7896bf, map: earthMap, normalMap: earthNormal, normalScale: new THREE.Vector2(.3, .3), roughness: .86, metalness: 0, clearcoat: .12, clearcoatRoughness: .7 }), horizon, false);
-  earth.position.set(-.8, -33.5, -14); earth.rotation.set(-.9, -.65, .1);
-  const clouds = mesh(new THREE.SphereGeometry(28.045, 96, 64), new THREE.MeshStandardMaterial({ color: 0x8d9db2, map: cloudMap, transparent: true, opacity: .36, depthWrite: false, roughness: 1 }), horizon, false);
-  clouds.position.copy(earth.position); clouds.rotation.copy(earth.rotation); clouds.userData.skipAO = true;
-  const earthAtmo = atmosphere(new THREE.SphereGeometry(28.14, 112, 64), 0x4373c1, .85);
-  earthAtmo.position.copy(earth.position); earthAtmo.userData.skipAO = true; horizon.add(earthAtmo);
-  const sunrise = glow(horizon, [-4.4, -6.95, -11.4], [6.8, 6.8, 1], new THREE.Color(3.0, 1.1, .35), .48);
-  const sunriseCore = glow(horizon, [-4.4, -6.95, -11.2], [.7, .7, 1], new THREE.Color(7, 3.8, 1.6), .9);
-  glow(horizon, [-4.4, -6.95, -11.0], [11, .055, 1], new THREE.Color(1.6, .9, .45), .5);
 
   // ---------- Silk-like spectral sheets and filaments: geometry, not an image ----------
   const ribbons = new THREE.Group(); scene.add(ribbons);
@@ -267,20 +261,48 @@ if (renderer) {
     return (x, y) => { const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy); const g = (a, b) => grid[(a & 63) + (b & 63) * 64]; return (g(ix, iy) * (1 - u) + g(ix + 1, iy) * u) * (1 - v) + (g(ix, iy + 1) * (1 - u) + g(ix + 1, iy + 1) * u) * v; };
   }
   function fbm(n, x, y, octaves = 4) { let result = 0, amplitude = .5, total = 0; for (let i = 0; i < octaves; i++) { result += n(x, y) * amplitude; total += amplitude; amplitude *= .5; x *= 2.07; y *= 2.07; } return result / total; }
-  const gasTexture = canvasTexture(1024, 512, (ctx, w, h) => {
-    const n = noise(42), image = ctx.createImageData(w, h), palette = [[22, 21, 48], [60, 38, 96], [134, 64, 130], [228, 142, 126], [250, 201, 157], [110, 151, 203]];
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+  const planet = new THREE.Group(); scene.add(planet);
+  let planetBody = null, planetPrepared = false, observationsPrepared = false, narratorPrepared = false;
+  const coolWavelength = new THREE.Color('#8da4d0'), warmWavelength = new THREE.Color('#ffd0a0');
+  let currentWavelength = Number.isFinite(window.ORVYX_WAVELENGTH) ? window.ORVYX_WAVELENGTH : 4.3;
+  function applyWavelength(value) {
+    if (!Number.isFinite(value)) return;
+    currentWavelength = Math.max(.75, Math.min(5, value));
+    if (planetBody) {
+      const t = (currentWavelength - .75) / 4.25;
+      planetBody.material.color.copy(coolWavelength).lerp(warmWavelength, t);
+      planetBody.material.emissive.copy(planetBody.material.color);
+      planetBody.material.emissiveIntensity = .03 + .09 * t;
+    }
+    invalidate();
+  }
+  window.addEventListener('orvyx:wavelength', e => applyWavelength(e.detail));
+  const yieldWork = () => globalThis.scheduler?.yield ? globalThis.scheduler.yield() : new Promise(resolve => setTimeout(resolve, 0));
+  async function initPlanet() {
+    const w = 1024, h = 512, canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const n = noise(42), image = ctx.createImageData(w, h), palette = [[8,10,17], [34,38,63], [101,70,92], [167,117,82], [217,176,135], [85,107,123]];
+    let rows = 16;
+    for (let start = 0; start < h;) {
+      const started = performance.now(), end = Math.min(h, start + rows);
+      for (let y = start; y < end; y++) for (let x = 0; x < w; x++) {
       const turbulence = fbm(n, x / 145, y / 48) * .105 + Math.sin(x / w * 6.28318 + y / h * 7) * .045;
       const band = (.5 + .5 * Math.sin((y / h + turbulence) * 42)) * .75 + fbm(n, x / 170, y / 90, 3) * .25;
       const index = Math.min(4, Math.floor(band * 5)), blend = band * 5 - index, shade = .86 + fbm(n, x / 35, y / 30, 3) * .25;
       const p = (y * w + x) * 4;
       for (let channel = 0; channel < 3; channel++) image.data[p + channel] = (palette[index][channel] * (1 - blend) + palette[index + 1][channel] * blend) * shade;
       image.data[p + 3] = 255;
+      }
+      start = end;
+      if (performance.now() - started > 50) rows = Math.max(1, Math.floor(rows / 2));
+      await yieldWork();
     }
     ctx.putImageData(image, 0, 0);
-  }, true);
-  const planet = new THREE.Group(); scene.add(planet);
-  const planetBody = mesh(new THREE.SphereGeometry(1.7, 112, 80), new THREE.MeshPhysicalMaterial({ map: gasTexture, roughness: .24, metalness: .42, clearcoat: 1, clearcoatRoughness: .13, envMapIntensity: 1.5 }), planet);
+    const gasTexture = new THREE.CanvasTexture(canvas);
+    gasTexture.colorSpace = THREE.SRGBColorSpace; gasTexture.anisotropy = anisotropy;
+    planetBody = mesh(new THREE.SphereGeometry(1.7, 112, 80), new THREE.MeshPhysicalMaterial({ map: gasTexture, roughness: .24, metalness: .42, clearcoat: 1, clearcoatRoughness: .13, envMapIntensity: 1.5 }), planet);
+    applyWavelength(currentWavelength);
   const planetAtmo = atmosphere(new THREE.SphereGeometry(1.75, 96, 64), 0x8f96c5, .7); planetAtmo.userData.skipAO = true; planet.add(planetAtmo);
   const ringTexture = canvasTexture(512, 8, (ctx, w, h) => {
     const n = noise(91);
@@ -296,16 +318,28 @@ if (renderer) {
     const orbit = mesh(new THREE.TorusGeometry(1.92 + j * .12, .004, 6, 160), new THREE.MeshBasicMaterial({color: 0xc9b2d4, transparent: true, opacity: .16 - j * .02, depthWrite: false}), planet, false);
     orbit.rotation.set(.8 + j * .33, .25, j * .42);
   }
+    planetPrepared = true; invalidate();
+  }
 
   // ---------- Observation glass plates. Deliberately simulated, never invented data. ----------
   const observations = new THREE.Group(); scene.add(observations);
-  const observationMovers = [];
+  const observationMovers = [], observationOutlines = [];
+  let selectedObservation = Number.isInteger(window.ORVYX_OBSERVATION) ? window.ORVYX_OBSERVATION : 1;
+  function applyObservation(index) {
+    if (!Number.isInteger(index) || index < 0 || index > 2) return;
+    selectedObservation = index;
+    observationOutlines.forEach((outline, i) => { outline.material.opacity = i === index ? .85 : .25; });
+    observationMovers.forEach((mover, i) => { mover.material.opacity = i === index ? 1 : .4; });
+    invalidate();
+  }
+  window.addEventListener('orvyx:observation', e => applyObservation(e.detail));
+  function initObservations() {
   for (let k = 0; k < 3; k++) {
     const plate = new THREE.Group(); plate.position.set((k - 1) * .62, (k - 1) * .23, -k * .8); plate.rotation.set(.04, -.3, .04); observations.add(plate);
     const geometry = new THREE.PlaneGeometry(3.25, 3.25);
     const glass = mesh(geometry, new THREE.MeshPhysicalMaterial({ color: 0x708aa5, metalness: .18, roughness: .25, transparent: true, opacity: .065, side: THREE.DoubleSide, depthWrite: false }), plate, false);
     glass.userData.skipAO = true;
-    const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: k === 2 ? 0xd3b493 : 0x8298b0, transparent: true, opacity: k === 2 ? .6 : .38 })); plate.add(outline);
+    const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: k === 2 ? 0xd3b493 : 0x8298b0, transparent: true, opacity: .25 })); plate.add(outline); observationOutlines.push(outline);
     const coords = [], starColors = [];
     for (let j = 0; j < 85; j++) { coords.push(((j * 37) % 97) / 97 * 2.95 - 1.475, ((j * 71) % 89) / 89 * 2.95 - 1.475, .02); const c = .35 + (j % 8) * .08; starColors.push(c, c, c * 1.05); }
     const fieldGeometry = new THREE.BufferGeometry(); fieldGeometry.setAttribute('position', new THREE.Float32BufferAttribute(coords, 3)); fieldGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
@@ -317,25 +351,40 @@ if (renderer) {
     const labelTexture = canvasTexture(512, 64, (ctx, w) => { ctx.fillStyle = '#a6b1be'; ctx.font = '17px monospace'; ctx.fillText(`OBSERVATION / 0${k + 1}                       SIMULATED`, 4, 37); }, true);
     const label = mesh(new THREE.PlaneGeometry(2.9, .36), new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true, opacity: .7, depthWrite: false }), plate, false); label.position.set(0, -1.87, .03); label.userData.skipAO = true;
   }
+    const points = observationMovers.map(mover => { mover.parent.updateMatrix(); return mover.position.clone().applyMatrix4(mover.parent.matrix); });
+    observations.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: .7 })));
+    applyObservation(selectedObservation);
+    observationsPrepared = true; invalidate();
+  }
 
   // ---------- Cosmic Narrator: an opalescent, gyroscopic celestial sculpture ----------
   const narrator = new THREE.Group(); scene.add(narrator);
   const core = new THREE.Group(); narrator.add(core);
-  const coreTexture = canvasTexture(512, 256, (ctx, w, h) => {
-    const n = noise(37), image = ctx.createImageData(w, h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const value = fbm(n, x / 55, y / 55, 4), vein = Math.pow(Math.abs(Math.sin(x / 44 + value * 13 + y / 67)), 16); const p = (y * w + x) * 4; image.data[p] = 26 + value * 26 + vein * 80; image.data[p + 1] = 30 + value * 28 + vein * 55; image.data[p + 2] = 44 + value * 34 + vein * 24; image.data[p + 3] = 255; }
+  let narratorDust;
+  const narratorFilaments = [], narratorRings = [];
+  async function initNarrator() {
+    const w = 512, h = 256, canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d'), n = noise(37), image = ctx.createImageData(w, h);
+    let rows = 16;
+    for (let start = 0; start < h;) {
+      const started = performance.now(), end = Math.min(h, start + rows);
+      for (let y = start; y < end; y++) for (let x = 0; x < w; x++) { const value = fbm(n, x / 55, y / 55, 4), vein = Math.pow(Math.abs(Math.sin(x / 44 + value * 13 + y / 67)), 16); const p = (y * w + x) * 4; image.data[p] = 26 + value * 26 + vein * 80; image.data[p + 1] = 30 + value * 28 + vein * 55; image.data[p + 2] = 44 + value * 34 + vein * 24; image.data[p + 3] = 255; }
+      start = end;
+      if (performance.now() - started > 50) rows = Math.max(1, Math.floor(rows / 2));
+      await yieldWork();
+    }
     ctx.putImageData(image, 0, 0);
-  }, true);
+    const coreTexture = new THREE.CanvasTexture(canvas);
+    coreTexture.colorSpace = THREE.SRGBColorSpace; coreTexture.anisotropy = anisotropy;
   const coreMaterial = new THREE.MeshPhysicalMaterial({ map: coreTexture, bumpMap: coreTexture, bumpScale: .008, emissiveMap: coreTexture, emissive: 0x485574, emissiveIntensity: .25, color: 0x9fa8c3, metalness: .62, roughness: .18, clearcoat: 1, clearcoatRoughness: .12, iridescence: .5, iridescenceIOR: 1.3, iridescenceThicknessRange: [120, 330], envMapIntensity: 1.5 });
   mesh(new THREE.SphereGeometry(1.16, 96, 64), coreMaterial, core, false);
-  const narratorFilaments = [];
   for (let k = 0; k < 28; k++) {
     const points = [], latitude = -1.15 + k / 27 * 2.3, phase = k * 2.399963;
     for (let j = 0; j <= 110; j++) { const u = j / 110 * Math.PI * 2, lat = latitude + .14 * Math.sin(3 * u + phase), r = 1.18 + .018 * Math.sin(4 * u + phase); points.push(new THREE.Vector3(r * Math.cos(lat) * Math.cos(u), r * Math.sin(lat), r * Math.cos(lat) * Math.sin(u))); }
     const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(k % 7 === 0 ? 0x38bdf8 : 0xc6ab8c).multiplyScalar(1.4), transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false });
     const filament = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 115, k % 3 ? .004 : .009, 5, false), material, core, false); filament.userData.skipAO = true; narratorFilaments.push(material);
   }
-  const narratorRings = [];
   const orbitMaterial = new THREE.MeshPhysicalMaterial({ color: 0xc6ab8c, metalness: .9, roughness: .25, clearcoat: .4 });
   for (let k = 0; k < 4; k++) {
     const ring = mesh(new THREE.TorusGeometry(1.48 + k * .18, .012 + k * .001, 12, 180, k === 3 ? Math.PI * 1.72 : Math.PI * 2), orbitMaterial, narrator, false);
@@ -344,117 +393,201 @@ if (renderer) {
   const dustPositions = [], dustColors = [];
   for (let k = 0; k < 180; k++) { const phi = Math.acos(1 - 2 * (k + .5) / 180), theta = k * 2.399963, r = 1.63 + (k % 7) * .075; dustPositions.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta)); dustColors.push(.7 + random() * .3, .57 + random() * .2, .43 + random() * .3); }
   const dustGeometry = new THREE.BufferGeometry(); dustGeometry.setAttribute('position', new THREE.Float32BufferAttribute(dustPositions, 3)); dustGeometry.setAttribute('color', new THREE.Float32BufferAttribute(dustColors, 3));
-  const narratorDust = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ map: pointTexture, vertexColors: true, size: .035, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); narrator.add(narratorDust);
+  narratorDust = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ map: pointTexture, vertexColors: true, size: .035, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); narrator.add(narratorDust);
   glow(narrator, [0, 0, -.5], [5, 5, 1], 0x525a8d, .18);
+    narratorPrepared = true; invalidate();
+  }
+  let familiesQueued = false;
+  function preparePageFamilies() {
+    if (document.querySelector('[data-scene="infrared"]')) initPlanet();
+    if (document.querySelector('[data-scene="compare"]')) initObservations();
+    if (document.querySelector('[data-scene="narrator"]')) initNarrator();
+  }
 
   // ---------- One cinematic pipeline, with user-adjustable finishing ----------
   const effects = createSpherexEffects(renderer, scene, camera, effectiveSettings());
-  let progress = window.ORVYX_SCROLL || 0, currentProgress = progress;
-  const desktopFrames = [
+  let story = window.ORVYX_STORY || { from: 'intro', to: 'intro', mix: 0, active: 'intro' };
+  const sceneNames = ['intro', 'telescope', 'mission', 'infrared', 'compare', 'narrator'];
+  const desktopFrames = Object.fromEntries([
     { cam: [0, 1.1, 20], look: [0, .5, 0], tel: [0, -.55, -2.5], ts: 0, rot: [.62, -.18, .12], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [3.4, .1, 0], ns: 0 },
     { cam: [0, .65, 16], look: [.35, .1, 0], tel: [3.3, -.15, 0], ts: .94, rot: [.60, -.48, .20], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [3.4, .1, 0], ns: 0 },
     { cam: [-.6, 1.4, 13.8], look: [.7, .1, 0], tel: [3.25, .35, 0], ts: 1.03, rot: [.76, .22, -.15], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [3.4, .1, 0], ns: 0 },
     { cam: [0, .2, 17], look: [0, 0, 0], tel: [11, -1, -12], ts: 0, rot: [.4, 1.1, .5], planet: [-3.3, .15, 0], ps: 1.34, obs: [9, 0, -4], os: 0, narr: [3.4, .1, 0], ns: 0 },
     { cam: [0, .2, 17], look: [0, 0, 0], tel: [11, -1, -12], ts: 0, rot: [.4, 1.7, .4], planet: [-10, 0, -8], ps: 0, obs: [3.35, .1, 0], os: 1.36, narr: [3.4, .1, 0], ns: 0 },
     { cam: [0, .2, 17], look: [0, 0, 0], tel: [11, -1, -12], ts: 0, rot: [.4, 1.7, .4], planet: [-10, 0, -8], ps: 0, obs: [9, 0, -5], os: 0, narr: [3.4, .1, 0], ns: 1.58 }
-  ];
-  const mobileFrames = [
+  ].map((frame, index) => [sceneNames[index], frame]));
+  const mobileFrames = Object.fromEntries([
     { cam: [0, .4, 19], look: [0, .3, 0], tel: [0, 2.3, -3], ts: 0, rot: [.62, -.3, .18], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [0, 2.6, 0], ns: 0 },
     { cam: [0, .3, 18], look: [0, .1, 0], tel: [.72, 2.55, -1], ts: .46, rot: [.62, -.48, .22], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [0, 2.6, 0], ns: 0 },
     { cam: [0, .3, 18], look: [0, .1, 0], tel: [0, 2.4, -.5], ts: .64, rot: [.78, .2, -.14], planet: [9, 0, -8], ps: 0, obs: [9, 0, -4], os: 0, narr: [0, 2.6, 0], ns: 0 },
     { cam: [0, .2, 18], look: [0, 0, 0], tel: [8, 0, -8], ts: 0, rot: [.4, 1.1, .5], planet: [0, 2.7, 0], ps: .61, obs: [9, 0, -4], os: 0, narr: [0, 2.6, 0], ns: 0 },
     { cam: [0, .2, 18], look: [0, 0, 0], tel: [8, 0, -8], ts: 0, rot: [.4, 1.7, .4], planet: [-8, 0, -8], ps: 0, obs: [0, 2.8, 0], os: .72, narr: [0, 2.6, 0], ns: 0 },
     { cam: [0, .2, 18], look: [0, 0, 0], tel: [8, 0, -8], ts: 0, rot: [.4, 1.7, .4], planet: [-8, 0, -8], ps: 0, obs: [8, 0, -4], os: 0, narr: [0, 2.7, 0], ns: .95 }
-  ];
+  ].map((frame, index) => [sceneNames[index], frame]));
+  const ribbonWeights = { intro: 1, telescope: 1, mission: 0, infrared: 0, compare: 0, narrator: 0 };
+  const flareWeights = { intro: 0, telescope: 1, mission: .5, infrared: 0, compare: 0, narrator: 0 };
+  const narratorButton = document.querySelector('#narratorButton'), narratorSection = document.querySelector('#narrator');
   const lerp = THREE.MathUtils.lerp;
   const vector = new THREE.Vector3();
   function blendVector(a, b, t) { return vector.set(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)); }
-  function place(object, aPos, bPos, aScale, bScale, t) { object.position.copy(blendVector(aPos, bPos, t)); const scale = Math.max(.0001, lerp(aScale, bScale, t)); object.scale.setScalar(scale); object.visible = scale > .005; }
-  const pointer = new THREE.Vector2(), pointerCurrent = new THREE.Vector2();
-  let orbitOffset = 0, orbitCurrent = 0, dragging = false, dragX = 0, dragged = false;
-  const interaction = document.querySelector('#objectInteraction');
-  function release() { dragging = false; interaction?.classList.remove('dragging'); }
-  if (interaction) {
-    interaction.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; if (e.pointerType === 'touch') return; dragging = true; dragged = false; dragX = e.clientX; interaction.setPointerCapture(e.pointerId); interaction.classList.add('dragging'); });
-    interaction.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 2) dragged = true; orbitOffset += dx * .009; dragX = e.clientX; dirty = true; });
-    interaction.addEventListener('pointerup', release); interaction.addEventListener('pointercancel', release);
+  function place(object, aPos, bPos, aScale, bScale, t) {
+    object.position.copy(blendVector(aPos, bPos, t)).applyMatrix4(camera.matrixWorldInverse);
+    object.position.x *= framing.horizontalScale;
+    object.position.applyMatrix4(camera.matrixWorld);
+    const scale = Math.max(.0001, lerp(aScale, bScale, t)) * framing.sculptureScale;
+    object.scale.setScalar(scale); object.visible = scale > .005;
   }
-  document.querySelector('#orbitButton')?.addEventListener('click', () => { orbitOffset += Math.PI / 3; dirty = true; });
-  window.addEventListener('pointermove', e => { pointer.set((e.clientX / innerWidth - .5) * 2, (e.clientY / innerHeight - .5) * 2); }, { passive: true });
-  window.addEventListener('orvyx:scroll', e => { progress = Math.max(0, Math.min(5, e.detail)); dirty = true; });
+  const pointer = new THREE.Vector2(), pointerCurrent = new THREE.Vector2();
+  const orbitKeys = ['telescope', 'planet', 'observations', 'narrator'];
+  const orbitOffset = { telescope: 0, planet: 0, observations: 0, narrator: 0 };
+  const orbitCurrent = { telescope: 0, planet: 0, observations: 0, narrator: 0 };
+  let dragging = null, dragX = 0;
+  document.querySelectorAll('[data-orbit-target]').forEach(target => {
+    const key = target.dataset.orbitTarget;
+    function release() { dragging = null; target.classList.remove('dragging'); }
+    target.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch' || e.button !== 0 || e.target.closest('button,a,input,select,textarea')) return;
+      dragging = key; dragX = e.clientX; target.setPointerCapture(e.pointerId); target.classList.add('dragging');
+    });
+    target.addEventListener('pointermove', e => { if (dragging !== key) return; orbitOffset[key] += (e.clientX - dragX) * .009; dragX = e.clientX; invalidate(); });
+    target.addEventListener('pointerup', release);
+    target.addEventListener('pointercancel', release);
+    target.addEventListener('lostpointercapture', release);
+    target.addEventListener('keydown', e => {
+      if (e.target !== target) return;
+      if (e.key === 'Home') orbitOffset[key] = 0;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') orbitOffset[key] += (e.key === 'ArrowRight' ? 1 : -1) * Math.PI / 12;
+      else return;
+      e.preventDefault(); invalidate();
+    });
+    target.querySelector('[data-orbit-step]').addEventListener('click', () => { orbitOffset[key] += Math.PI / 3; invalidate(); });
+  });
+  window.addEventListener('pointermove', e => { pointer.set((e.clientX / innerWidth - .5) * 2, (e.clientY / innerHeight - .5) * 2); if (settings.motion) invalidate(); }, { passive: true });
+  window.addEventListener('orvyx:story', e => { story = e.detail; invalidate(); });
   window.addEventListener('orvyx:visuals', e => {
     const oldQuality = settings.quality;
     settings = { ...settings, ...e.detail };
     effects.setSettings(effectiveSettings());
-    if (oldQuality !== settings.quality) resize(); dirty = true;
+    if (e.detail.resetAuto && settings.quality === 'auto') qualityLevel = 0;
+    if (oldQuality !== settings.quality || e.detail.resetAuto) resize(); invalidate();
   });
   function resize() {
     mobile = innerWidth <= 700;
-    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    viewportWidth = Math.max(1, stage.clientWidth); viewportHeight = Math.max(1, stage.clientHeight);
+    framing = getSceneFraming(viewportWidth, viewportHeight, mobile);
+    currentProfile = profile();
+    camera.aspect = viewportWidth / viewportHeight; camera.updateProjectionMatrix();
     sizeBackground();
-    renderer.setPixelRatio(pixelRatio()); renderer.setSize(innerWidth, innerHeight);
-    effects.resize(innerWidth, innerHeight, renderer.getPixelRatio());
+    renderer.setPixelRatio(pixelRatio()); renderer.setSize(viewportWidth, viewportHeight, false);
+    effects.resize(viewportWidth, viewportHeight, renderer.getPixelRatio());
     stars.material.uniforms.dpr.value = renderer.getPixelRatio();
-    const shadowSize = effectiveSettings().quality === 'efficient' ? 1024 : 2048;
+    starGeo.setDrawRange(0, currentProfile.starCount);
+    renderer.shadowMap.enabled = currentProfile.shadows;
+    const shadowSize = currentProfile.shadowSize || 1024;
     if (key.shadow.mapSize.x !== shadowSize) {
       key.shadow.mapSize.set(shadowSize, shadowSize);
       if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; }
       key.shadow.needsUpdate = true;
-    } dirty = true;
+    } invalidate();
   }
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', resize);
-  document.addEventListener('visibilitychange', () => { dirty = true; });
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); ready(false); });
-  canvas.addEventListener('webglcontextrestored', () => location.reload());
-  const clock = new THREE.Clock(); let elapsed = 0, frames = 0, lastFrame = 0;
+  document.addEventListener('fullscreenchange', resize);
+  const surfaceObserver = new ResizeObserver(resize);
+  surfaceObserver.observe(stage);
+  document.addEventListener('visibilitychange', () => { lastFrame = 0; resetSampling(); if (document.hidden) stopFrame(); else invalidate(); });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); contextLost = true; stopFrame(); ready(false); });
+  canvas.addEventListener('webglcontextrestored', () => { contextLost = false; lastFrame = 0; resetSampling(); ready(true, modelLoaded); invalidate(); });
+  let elapsed = 0, frames = 0, lastFrame = 0;
+  const zeroPointer = new THREE.Vector2();
+  const diagnostics = { webgl: true, modelLoaded: false, activeScene: story.active, sceneReady: false, qualityLevel, averageFps: 0, p95FrameMs: 0, paused: false, lastRenderTime: 0, drawCalls: 0, triangles: 0, pixelRatio: renderer.getPixelRatio(), cinematic: settings.enabled, softwareRenderer, frames: 0 };
+  window.ORVYX_DIAGNOSTICS = diagnostics;
+  const frameIntervals = new Float64Array(120);
+  let intervalCount = 0, intervalCursor = 0, warmStart = 0, windowStart = 0, badWindows = 0;
+  function resetSampling() { intervalCount = 0; intervalCursor = 0; warmStart = 0; windowStart = 0; badWindows = 0; }
+  function stopFrame() {
+    if (frameRequest) cancelAnimationFrame(frameRequest);
+    frameRequest = 0; lastFrame = 0; diagnostics.paused = true;
+  }
+  function invalidate() {
+    dirty = true;
+    if (!frameRequest && !document.hidden && !pageHidden && !contextLost && !disposed && sceneVisible) frameRequest = requestAnimationFrame(tick);
+  }
+  const visibleSections = new Set();
+  const visibilityObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) entry.isIntersecting ? visibleSections.add(entry.target) : visibleSections.delete(entry.target);
+    sceneVisible = visibleSections.size > 0;
+    if (sceneVisible) { lastFrame = 0; resetSampling(); invalidate(); }
+    else { stopFrame(); resetSampling(); }
+  });
+  document.querySelectorAll('.story-section').forEach(section => visibilityObserver.observe(section));
+  window.addEventListener('pagehide', event => {
+    pageHidden = true; stopFrame(); resetSampling();
+    if (!event.persisted) {
+      disposed = true; visibilityObserver.disconnect(); surfaceObserver.disconnect(); effects.dispose();
+      scene.traverse(object => {
+        if (object.geometry) object.geometry.dispose();
+        const materials = object.material ? (Array.isArray(object.material) ? object.material : [object.material]) : [];
+        for (const material of materials) {
+          for (const value of Object.values(material)) if (value?.isTexture) value.dispose();
+          material.dispose();
+        }
+      });
+      if (scene.background?.isTexture) scene.background.dispose();
+      environmentTarget.dispose(); renderer.dispose();
+    }
+  });
+  window.addEventListener('pageshow', event => { if (event.persisted) { pageHidden = false; story = window.ORVYX_STORY || story; lastFrame = 0; resetSampling(); invalidate(); } });
   function tick(now) {
-    requestAnimationFrame(tick);
-    if ((!assetsReady && !failedModel) || document.hidden || now - lastFrame < 32) return;
-    const moving = Math.abs(progress - currentProgress) > .002 || Math.abs(orbitOffset - orbitCurrent) > .002;
-    if (!settings.motion && !dirty && !moving) return;
+    frameRequest = 0;
+    if (document.hidden || pageHidden || contextLost || disposed || !sceneVisible) { stopFrame(); return; }
+    const moving = orbitKeys.some(key => Math.abs(orbitOffset[key] - orbitCurrent[key]) > .002);
+    if (!settings.motion && !dirty && !moving) { stopFrame(); resetSampling(); return; }
+    diagnostics.paused = false;
+    const frameMs = lastFrame ? now - lastFrame : 0;
+    const dt = Math.min(frameMs / 1000, .05);
     lastFrame = now;
-    const dt = Math.min(clock.getDelta(), .065);
     dirty = false;
     if (settings.motion) elapsed += dt;
     const smooth = 1 - Math.exp(-dt * 6.5);
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const efficientAuto = softwareRenderer && settings.quality === 'auto';
-    currentProgress = reduced ? Math.round(progress) : efficientAuto ? progress : lerp(currentProgress, progress, smooth);
     const frameSet = mobile ? mobileFrames : desktopFrames;
-    const index = Math.min(Math.floor(currentProgress), frameSet.length - 2), fraction = THREE.MathUtils.smoothstep(currentProgress - index, 0, 1);
-    const a = frameSet[index], b = frameSet[index + 1];
+    const fraction = THREE.MathUtils.smoothstep(story.mix, 0, 1);
+    const a = frameSet[story.from], b = frameSet[story.to];
+    const ribbonVisibility = lerp(ribbonWeights[story.from], ribbonWeights[story.to], fraction);
+    const flareIn = lerp(flareWeights[story.from], flareWeights[story.to], fraction);
     camera.position.copy(blendVector(a.cam, b.cam, fraction));
-    pointerCurrent.lerp(settings.motion && !mobile ? pointer : new THREE.Vector2(), smooth * .5);
+    pointerCurrent.lerp(settings.motion && !mobile ? pointer : zeroPointer, smooth * .5);
     camera.position.x += pointerCurrent.x * .08; camera.position.y -= pointerCurrent.y * .045;
     camera.lookAt(blendVector(a.look, b.look, fraction));
+    camera.updateMatrixWorld();
     place(telescope, a.tel, b.tel, a.ts, b.ts, fraction);
-    orbitCurrent = efficientAuto ? orbitOffset : lerp(orbitCurrent, orbitOffset, 1 - Math.exp(-dt * 8));
+    key.castShadow = currentProfile.shadows && telescope.visible;
+    for (const key of orbitKeys) orbitCurrent[key] = lerp(orbitCurrent[key], orbitOffset[key], 1 - Math.exp(-dt * 8));
     const ambient = settings.motion ? Math.sin(elapsed * .25) * .045 : 0;
-    telescope.rotation.set(lerp(a.rot[0], b.rot[0], fraction) + ambient * .25, lerp(a.rot[1], b.rot[1], fraction) + ambient + orbitCurrent, lerp(a.rot[2], b.rot[2], fraction));
+    telescope.rotation.set(lerp(a.rot[0], b.rot[0], fraction) + ambient * .25, lerp(a.rot[1], b.rot[1], fraction) + ambient + orbitCurrent.telescope, lerp(a.rot[2], b.rot[2], fraction));
     place(planet, a.planet, b.planet, a.ps, b.ps, fraction);
     place(observations, a.obs, b.obs, a.os, b.os, fraction);
     place(narrator, a.narr, b.narr, a.ns, b.ns, fraction);
+    planet.rotation.y = orbitCurrent.planet;
+    observations.rotation.y = orbitCurrent.observations;
+    narrator.rotation.y = orbitCurrent.narrator;
     if (settings.motion) {
-      planetBody.rotation.y += dt * .025;
-      core.rotation.y += dt * .08;
-      narratorRings.forEach((ring, k) => ring.rotation.z += dt * .025 * (k % 2 ? -1 : 1));
-      narratorDust.rotation.y -= dt * .035;
-      clouds.rotation.y += dt * .001;
+      if (planet.visible && planetBody) planetBody.rotation.y += dt * .025;
+      if (narrator.visible && narratorPrepared) {
+        core.rotation.y += dt * .08;
+        narratorRings.forEach((ring, k) => ring.rotation.z += dt * .025 * (k % 2 ? -1 : 1));
+        narratorDust.rotation.y -= dt * .035;
+      }
     }
-    const openNarrator = document.querySelector('#narratorButton')?.getAttribute('aria-expanded') === 'true' || document.querySelector('#narrator')?.classList.contains('demo-open');
+    const openNarrator = narratorButton?.getAttribute('aria-expanded') === 'true' || narratorSection?.classList.contains('demo-open');
     narratorFilaments.forEach((mat, k) => { mat.opacity = (openNarrator ? .7 : .45) + (settings.motion ? Math.sin(elapsed * .6 + k * .18) * .045 : 0); });
-    const horizonVisibility = 1 - THREE.MathUtils.smoothstep(currentProgress, .3, 1.45);
-    horizon.visible = false; // No Earth in the opening scene.
-    horizon.position.y = -9 * (1 - horizonVisibility);
-    const ribbonVisibility = 1 - THREE.MathUtils.smoothstep(currentProgress, 1.35, 2.75);
     ribbons.visible = ribbonVisibility > .01;
     ribbonMaterials.forEach(mat => { mat.uniforms.opacity.value = .24 * ribbonVisibility * (mobile ? .6 : 1); mat.uniforms.time.value = elapsed; });
     filamentMaterials.forEach(mat => { mat.uniforms.opacity.value = .40 * ribbonVisibility * (mobile ? .6 : 1); });
-    telescopeFlare.visible = currentProgress > .25 && currentProgress < 2.3;
-    const flareIn = THREE.MathUtils.smoothstep(currentProgress, .35, 1.05) * (1 - THREE.MathUtils.smoothstep(currentProgress, 1.55, 2.2));
+    telescopeFlare.visible = flareIn > .01;
     telescopeFlare.children.forEach((object, k) => { object.material.opacity = [.33, .85, .4][k] * flareIn; });
-    skyOrbits.visible = currentProgress > .3 && currentProgress < 2.8;
+    skyOrbits.visible = flareIn > .01;
     skyOrbits.rotation.z = settings.motion ? elapsed * .002 : 0;
     stars.material.uniforms.time.value = elapsed;
     stars.rotation.y = settings.motion ? elapsed * .00065 : stars.rotation.y;
@@ -462,16 +595,38 @@ if (renderer) {
     if (scene.background && scene.background.isTexture && scene.background.image) {
       const bg = scene.background;
       const availableX = Math.max(0, 1 - bg.repeat.x), availableY = Math.max(0, 1 - bg.repeat.y);
-      bg.offset.x = availableX * (.5 + .18 * Math.sin(currentProgress * .45 + (settings.motion ? elapsed * .025 : 0)));
-      bg.offset.y = availableY * (.5 + .14 * Math.sin(currentProgress * .55));
+      bg.offset.x = availableX * (.5 + .18 * Math.sin((settings.motion ? elapsed * .025 : 0)));
+      bg.offset.y = availableY * .5;
       bg.updateMatrix();
     }
     effects.render(dt, elapsed);
     frames++;
-    if (!sceneAnnounced && (modelLoaded || failedModel)) { sceneAnnounced = true; ready(true, modelLoaded); }
-    window.ORVYX_DIAGNOSTICS = { webgl: true, modelLoaded, progress: Number(currentProgress.toFixed(3)), drawCalls: renderer.info.render.calls, triangles: renderer.info.render.triangles, pixelRatio: renderer.getPixelRatio(), cinematic: settings.enabled, softwareRenderer, frames };
+    if (!familiesQueued) { familiesQueued = true; requestAnimationFrame(preparePageFamilies); }
+    const sceneReady = story.active === 'intro' || (story.active === 'telescope' || story.active === 'mission' ? modelLoaded || failedModel : story.active === 'infrared' ? planetPrepared : story.active === 'compare' ? observationsPrepared : narratorPrepared);
+    const modelState = failedModel ? 'fallback' : modelLoaded ? 'loaded' : 'pending';
+    if (sceneReady && (!sceneAnnounced || announcedModelState !== modelState)) { sceneAnnounced = true; announcedModelState = modelState; ready(true, modelLoaded); }
+    diagnostics.modelLoaded = modelLoaded; diagnostics.activeScene = story.active;
+    diagnostics.drawCalls = renderer.info.render.calls; diagnostics.triangles = renderer.info.render.triangles;
+    diagnostics.pixelRatio = renderer.getPixelRatio(); diagnostics.cinematic = settings.enabled; diagnostics.frames = frames;
+    diagnostics.sceneReady = sceneReady; diagnostics.qualityLevel = qualityLevel; diagnostics.lastRenderTime = now;
+    if (settings.motion || moving) {
+      if (!warmStart) warmStart = now;
+      if (now - warmStart >= 2000) {
+        if (!windowStart) windowStart = now;
+        if (frameMs > 0) { frameIntervals[intervalCursor] = frameMs; intervalCursor = (intervalCursor + 1) % frameIntervals.length; intervalCount = Math.min(frameIntervals.length, intervalCount + 1); }
+        if (now - windowStart >= 2000 && intervalCount) {
+          const values = Array.from(frameIntervals.subarray(0, intervalCount)).sort((x, y) => x - y);
+          diagnostics.averageFps = 1000 * intervalCount / values.reduce((sum, value) => sum + value, 0);
+          diagnostics.p95FrameMs = values[Math.ceil(values.length * .95) - 1];
+          badWindows = diagnostics.averageFps < 35 || diagnostics.p95FrameMs > 33.4 ? badWindows + 1 : 0;
+          intervalCount = 0; intervalCursor = 0; windowStart = now;
+          if (settings.quality === 'auto' && badWindows >= 2 && qualityLevel < 2) { qualityLevel++; badWindows = 0; resize(); }
+        }
+      }
+      if (!frameRequest) frameRequest = requestAnimationFrame(tick);
+    } else { lastFrame = 0; diagnostics.paused = true; resetSampling(); }
   }
-  requestAnimationFrame(tick);
+  invalidate();
 }
 
 }

@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <style>@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}</style>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07090e">
   <meta name="description" content="ORVYX 2D SPHEREx Blink Observatory — Multi-epoch infrared blink comparator, WiseView asinh radiometry, and grounded Cosmic Narrator.">
   <title>ORVYX — 2D SPHEREx Blink Observatory</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/manrope.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/manrope-bold.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/dm-sans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="explorer.css">
+  <link rel="expect" href="#observatoryMain" blocking="render">
+  <link rel="stylesheet" href="visual-theme.css">
+  <link rel="stylesheet" href="explorer.css?v=cinematic-4">
 </head>
 <body class="observatory-shell">
   <!-- Full-viewport WCS Polar Reticle Backdrop -->
@@ -97,7 +100,7 @@
   </header>
 
   <!-- Main 3-Column Observatory Workspace -->
-  <main class="observatory-grid">
+  <main class="observatory-grid" id="observatoryMain">
     <!-- Left Rail: HUB + MIDDLE / WISEVIEW RADIOMETRY, MULTI-AGENCY OVERLAYS -->
     <aside class="left-rail" aria-label="Target controls and archive overlays">
       <!-- Cards 1 & 2: HUB + MIDDLE / WISEVIEW RADIOMETRY -->

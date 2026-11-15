@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — cinematic polish
+
+- Preserve Antigravity's four separate pages; replace numeric scroll poses with named, page-local sculpture transitions.
+- Add native cinematic controls, reduced-motion handling, wavelength/timeline feedback, manual orbit, bounded quality tiers, and render invalidation.
+- Retain the supplied GLB and procedural topology; prepare only page-required planet, comparison, and narrator families after the first draw.
+- Share navigation chrome with the Observatory without changing its scientific rendering or controller.
+- Fit sculptures in camera space across fullscreen/portrait/ultrawide aspect ratios; size the canvas from its actual surface and observe fullscreen/surface changes.
+- Revision script/style entry points to avoid loading stale numeric controllers against the new HTML.
+- Add focused scene-state, quality-policy, and framing regressions. Final performance acceptance remains open: later foreground measurements did not meet the target, and the cause is unresolved.
+
 ## v0.5.0 — ORVYX SPHEREx 2D Blink Observatory & Full-Stack Deployment (2026-11-15)
 
 ### Repository & Documentation Architecture
