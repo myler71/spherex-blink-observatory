@@ -13,3 +13,6 @@ dist/
 build/
 data/cache/
 !backend/tests/fixtures/**
+*.docx
+*.zip
+دليل تطوير مشروع ناسا SPHEREx.*
