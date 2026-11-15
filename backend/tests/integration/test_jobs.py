@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-from app.config import Settings
 from app.jobs.ingest_docs import run_ingest_docs
 from app.jobs.precache import run_precache
 from app.jobs.run_benchmarks import run_benchmarks
@@ -11,6 +10,7 @@ from app.store.cache import CacheStore
 from app.store.db import DatabaseStore
 from tests.integration.test_observe_pipeline import _MockArchive, _MockCatalogs
 from tests.synthetic.fits_generator import SyntheticScenario, generate_synthetic_dataset
+from tests.synthetic.restorable_observation import create_isolated_test_settings
 
 
 @pytest.mark.asyncio
@@ -28,7 +28,7 @@ async def test_jobs_ingest_precache_and_benchmarks_offline(tmp_path: Path) -> No
         ),
         tmp_path / "syn",
     )
-    settings = Settings(cache_dir=str(tmp_path / "cache"))
+    settings = create_isolated_test_settings(tmp_path / "cache")
     cache = CacheStore(settings)
     db = DatabaseStore(settings)
     pipe = ObservePipeline(settings, archive=_MockArchive(ds), catalogs=_MockCatalogs())
