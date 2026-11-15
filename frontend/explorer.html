@@ -57,10 +57,12 @@
       <span class="amber-square" aria-hidden="true"></span>
       <span>A NEW PERSPECTIVE ON THE UNIVERSE</span>
     </div>
-    <nav class="page-switch" aria-label="View switcher">
-      <a id="apiDocsLink" class="api-status-pill" href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" title="FastAPI OpenAPI Documentation (:8000/docs)"><span id="apiStatusDot" class="api-dot" aria-hidden="true"></span><span id="apiStatusText">API :8000/DOCS</span></a>
-      <a href="index.html" class="page-step"><span class="amber-dot" aria-hidden="true"></span>01</a>
-      <span class="page-step is-current" aria-current="page">02</span>
+    <nav class="page-switch" aria-label="Page switcher">
+      <a id="apiDocsLink" class="api-status-pill" href="explorer.html" hidden aria-hidden="true" style="display:none"><span id="apiStatusDot" class="api-dot" aria-hidden="true"></span><span id="apiStatusText">CALIBRATED</span></a>
+      <a href="index.html" class="page-step" title="Overview"><span class="amber-dot" aria-hidden="true"></span>01 Overview</a>
+      <a href="mission.html" class="page-step" title="Mission & Optics">02 Mission</a>
+      <a href="narrator.html" class="page-step" title="Cosmic Narrator">03 Narrator</a>
+      <span class="page-step is-current" aria-current="page">04 Observatory</span>
     </nav>
   </div>
 
@@ -383,9 +385,9 @@
         <h2 id="benchmarksTitle">5 Mandatory NASA Challenge Targets + Negative Control</h2>
       </div>
       <div class="dialog-actions">
-        <span id="benchmarksApiBadge" class="benchmarks-api-badge">API :8000 READY</span>
+        <span id="benchmarksApiBadge" class="benchmarks-api-badge">5+1 SUITE READY</span>
         <button type="button" id="runVerificationsBtn" class="dialog-action-btn">Run 5 Verifications ↻</button>
-        <a id="dialogApiDocsLink" href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" class="dialog-action-btn">API :8000/docs ↗</a>
+        <a id="dialogApiDocsLink" href="explorer.html" hidden aria-hidden="true" style="display:none" class="dialog-action-btn">Archive Reference</a>
         <button type="button" class="dialog-close-btn" command="close" commandfor="benchmarksDialog">Close ✕</button>
       </div>
     </div>
@@ -399,7 +401,7 @@
             <th scope="col">Measured SEP µ ("/yr)</th>
             <th scope="col">Variability χ²</th>
             <th scope="col">Gaia DR3 Status</th>
-            <th scope="col">Backend API Verdict</th>
+            <th scope="col">Verification Status</th>
             <th scope="col">Action</th>
           </tr>
         </thead>

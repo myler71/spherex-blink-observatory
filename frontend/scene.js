@@ -373,11 +373,13 @@ if (renderer) {
   const pointer = new THREE.Vector2(), pointerCurrent = new THREE.Vector2();
   let orbitOffset = 0, orbitCurrent = 0, dragging = false, dragX = 0, dragged = false;
   const interaction = document.querySelector('#objectInteraction');
-  interaction.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; if (e.pointerType === 'touch') return; dragging = true; dragged = false; dragX = e.clientX; interaction.setPointerCapture(e.pointerId); interaction.classList.add('dragging'); });
-  interaction.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 2) dragged = true; orbitOffset += dx * .009; dragX = e.clientX; dirty = true; });
-  function release() { dragging = false; interaction.classList.remove('dragging'); }
-  interaction.addEventListener('pointerup', release); interaction.addEventListener('pointercancel', release);
-  document.querySelector('#orbitButton').addEventListener('click', () => { orbitOffset += Math.PI / 3; dirty = true; });
+  function release() { dragging = false; interaction?.classList.remove('dragging'); }
+  if (interaction) {
+    interaction.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; if (e.pointerType === 'touch') return; dragging = true; dragged = false; dragX = e.clientX; interaction.setPointerCapture(e.pointerId); interaction.classList.add('dragging'); });
+    interaction.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - dragX; if (Math.abs(dx) > 2) dragged = true; orbitOffset += dx * .009; dragX = e.clientX; dirty = true; });
+    interaction.addEventListener('pointerup', release); interaction.addEventListener('pointercancel', release);
+  }
+  document.querySelector('#orbitButton')?.addEventListener('click', () => { orbitOffset += Math.PI / 3; dirty = true; });
   window.addEventListener('pointermove', e => { pointer.set((e.clientX / innerWidth - .5) * 2, (e.clientY / innerHeight - .5) * 2); }, { passive: true });
   window.addEventListener('orvyx:scroll', e => { progress = Math.max(0, Math.min(5, e.detail)); dirty = true; });
   window.addEventListener('orvyx:visuals', e => {
@@ -440,7 +442,7 @@ if (renderer) {
       narratorDust.rotation.y -= dt * .035;
       clouds.rotation.y += dt * .001;
     }
-    const openNarrator = document.querySelector('#narratorButton').getAttribute('aria-expanded') === 'true';
+    const openNarrator = document.querySelector('#narratorButton')?.getAttribute('aria-expanded') === 'true' || document.querySelector('#narrator')?.classList.contains('demo-open');
     narratorFilaments.forEach((mat, k) => { mat.opacity = (openNarrator ? .7 : .45) + (settings.motion ? Math.sin(elapsed * .6 + k * .18) * .045 : 0); });
     const horizonVisibility = 1 - THREE.MathUtils.smoothstep(currentProgress, .3, 1.45);
     horizon.visible = false; // No Earth in the opening scene.

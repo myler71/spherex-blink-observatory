@@ -194,13 +194,18 @@ select:focus-visible,
   flex-shrink: 0;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .page-switch {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .api-status-pill {
@@ -252,6 +257,7 @@ select:focus-visible,
   gap: 6px;
   color: var(--text-muted);
   text-decoration: none;
+  white-space: nowrap;
   transition: color 0.18s ease;
 }
 
@@ -260,7 +266,7 @@ select:focus-visible,
 }
 
 .page-step.is-current {
-  color: var(--text-dim);
+  color: var(--text-primary);
 }
 
 .amber-dot {

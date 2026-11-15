@@ -17,6 +17,9 @@
   let panelOpener = toggle;
 
   function updateUI() {
+    document.body.classList.toggle('finish-disabled', !settings.enabled || comparing);
+    document.documentElement.style.setProperty('--grain-opacity', settings.enabled && !comparing ? settings.grain / 750 : 0);
+    if (!panel || !toggle) return;
     $('#finishToggle').checked = settings.enabled;
     $('#atmosphereRange').value = settings.bloom;
     $('#grainRange').value = settings.grain;
@@ -26,12 +29,10 @@
     $('#grainRange').style.setProperty('--range-progress', `${settings.grain}%`);
     $('#qualitySelect').value = settings.quality;
     $('#motionToggle').checked = settings.motion;
-    document.body.classList.toggle('finish-disabled', !settings.enabled || comparing);
     $('#lookStatus').textContent = comparing ? 'RAW' : settings.enabled ? 'ON' : 'OFF';
     $('#lookName').textContent = comparing ? 'Original render' : 'Cinematic finish';
     $('#compareLook').classList.toggle('comparing', comparing);
     $('#compareLook').textContent = comparing ? 'Original render' : 'Hold to compare';
-    document.documentElement.style.setProperty('--grain-opacity', settings.enabled && !comparing ? settings.grain / 750 : 0);
     document.querySelectorAll('.range-setting').forEach(el => el.classList.toggle('disabled', !settings.enabled));
     $('#atmosphereRange').disabled = !settings.enabled;
     $('#grainRange').disabled = !settings.enabled;
@@ -46,44 +47,50 @@
   }
 
   function openPanel(opener = toggle) {
+    if (!panel || !toggle) return;
     panelOpener = opener;
     panel.hidden = false;
     toggle.setAttribute('aria-expanded', 'true');
-    $('#closeVisual').focus({ preventScroll: true });
+    $('#closeVisual')?.focus({ preventScroll: true });
   }
   function closePanel(restoreFocus = true) {
+    if (!panel || !toggle) return;
     panel.hidden = true;
     toggle.setAttribute('aria-expanded', 'false');
     endCompare();
-    if (restoreFocus) panelOpener.focus({ preventScroll: true });
+    if (restoreFocus && panelOpener) panelOpener.focus({ preventScroll: true });
   }
-  toggle.addEventListener('click', () => panel.hidden ? openPanel(toggle) : closePanel());
-  $('#heroLookButton').addEventListener('click', () => panel.hidden ? openPanel($('#heroLookButton')) : closePanel());
-  $('#closeVisual').addEventListener('click', () => closePanel());
-  document.addEventListener('pointerdown', e => {
-    if (!panel.hidden && !panel.contains(e.target) && !$('#visualDock').contains(e.target) && !$('#heroLookButton').contains(e.target)) closePanel(false);
-  });
-  $('#finishToggle').addEventListener('change', e => { settings.enabled = e.target.checked; applySettings(); });
-  $('#atmosphereRange').addEventListener('input', e => { settings.bloom = Number(e.target.value); applySettings(); });
-  $('#grainRange').addEventListener('input', e => { settings.grain = Number(e.target.value); applySettings(); });
-  $('#qualitySelect').addEventListener('change', e => { settings.quality = e.target.value; applySettings(); });
-  $('#motionToggle').addEventListener('change', e => { settings.motion = e.target.checked; settings.motionOverride = true; applySettings(); });
-  $('#resetLook').addEventListener('click', () => {
-    settings = { ...defaults };
-    comparing = false;
-    applySettings();
-    $('#announcer').textContent = 'The original ORVYX cinematic finish has been restored.';
-  });
   function startCompare() { comparing = true; applySettings(false); }
   function endCompare() { if (!comparing) return; comparing = false; applySettings(false); }
-  const compareButton = $('#compareLook');
-  compareButton.addEventListener('pointerdown', e => { e.preventDefault(); compareButton.setPointerCapture(e.pointerId); startCompare(); });
-  compareButton.addEventListener('pointerup', endCompare);
-  compareButton.addEventListener('pointercancel', endCompare);
-  compareButton.addEventListener('lostpointercapture', endCompare);
-  compareButton.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); startCompare(); } });
-  compareButton.addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); endCompare(); } });
-  compareButton.addEventListener('blur', endCompare);
+  if (panel && toggle) {
+    toggle.addEventListener('click', () => panel.hidden ? openPanel(toggle) : closePanel());
+    $('#heroLookButton')?.addEventListener('click', () => panel.hidden ? openPanel($('#heroLookButton')) : closePanel());
+    $('#closeVisual')?.addEventListener('click', () => closePanel());
+    document.addEventListener('pointerdown', e => {
+      if (!panel.hidden && !panel.contains(e.target) && !$('#visualDock')?.contains(e.target) && !$('#heroLookButton')?.contains(e.target)) closePanel(false);
+    });
+    $('#finishToggle')?.addEventListener('change', e => { settings.enabled = e.target.checked; applySettings(); });
+    $('#atmosphereRange')?.addEventListener('input', e => { settings.bloom = Number(e.target.value); applySettings(); });
+    $('#grainRange')?.addEventListener('input', e => { settings.grain = Number(e.target.value); applySettings(); });
+    $('#qualitySelect')?.addEventListener('change', e => { settings.quality = e.target.value; applySettings(); });
+    $('#motionToggle')?.addEventListener('change', e => { settings.motion = e.target.checked; settings.motionOverride = true; applySettings(); });
+    $('#resetLook')?.addEventListener('click', () => {
+      settings = { ...defaults };
+      comparing = false;
+      applySettings();
+      if ($('#announcer')) $('#announcer').textContent = 'Default visual finish restored.';
+    });
+    const compareButton = $('#compareLook');
+    if (compareButton) {
+      compareButton.addEventListener('pointerdown', e => { e.preventDefault(); compareButton.setPointerCapture(e.pointerId); startCompare(); });
+      compareButton.addEventListener('pointerup', endCompare);
+      compareButton.addEventListener('pointercancel', endCompare);
+      compareButton.addEventListener('lostpointercapture', endCompare);
+      compareButton.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); startCompare(); } });
+      compareButton.addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); endCompare(); } });
+      compareButton.addEventListener('blur', endCompare);
+    }
+  }
   window.addEventListener('blur', endCompare);
 
   const menuButton = $('#menuButton'), mobileNav = $('#mobileNav');
@@ -97,26 +104,35 @@
   mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
   document.addEventListener('pointerdown', e => { if (!mobileNav.hidden && !mobileNav.contains(e.target) && !menuButton.contains(e.target)) closeMenu(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (!panel.hidden) closePanel(); closeMenu(); }
+    if (e.key === 'Escape') { if (panel && !panel.hidden) closePanel(); closeMenu(); }
   });
 
   const explorerDialog = $('#explorerDialog'), creditsDialog = $('#creditsDialog');
-  document.querySelectorAll('[data-explorer]').forEach(button => button.addEventListener('click', () => { closePanel(false); explorerDialog.showModal(); }));
-  $('#creditsButton').addEventListener('click', () => creditsDialog.showModal());
-  document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+  document.querySelectorAll('[data-explorer]').forEach(button => button.addEventListener('click', () => { closePanel(false); explorerDialog?.showModal(); }));
+  $('#creditsButton')?.addEventListener('click', () => creditsDialog?.showModal());
+  document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog')?.close()));
   document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', e => {
     const rect = dialog.getBoundingClientRect();
     if (e.target === dialog && (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom)) dialog.close();
   }));
-  $('#narratorButton').addEventListener('click', () => {
-    const demo = $('#narratorDemo'), open = demo.hidden;
+  $('#narratorButton')?.addEventListener('click', () => {
+    const demo = $('#narratorDemo');
+    if (!demo) return;
+    const open = demo.hidden;
     demo.hidden = !open;
-    $('#narratorButton').setAttribute('aria-expanded', String(open));
-    $('#narratorButton').firstChild.textContent = open ? 'Close the preview ' : 'Meet your guide ';
-    $('#narrator').classList.toggle('demo-open', open);
+    $('#narratorButton')?.setAttribute('aria-expanded', String(open));
+    if ($('#narratorButton')?.firstChild) $('#narratorButton').firstChild.textContent = open ? 'Close the preview ' : 'Meet your guide ';
+    $('#narrator')?.classList.toggle('demo-open', open);
     requestAnimationFrame(updateScroll);
   });
-  $('#narratorForm').addEventListener('submit', async (event) => {
+  const narratorTargetSelect = $('#narratorTargetSelect');
+  const observationIdInput = $('#observationId');
+  if (narratorTargetSelect && observationIdInput) {
+    const syncNarratorTarget = () => { observationIdInput.value = narratorTargetSelect.value; };
+    narratorTargetSelect.addEventListener('change', syncNarratorTarget);
+    syncNarratorTarget();
+  }
+  $('#narratorForm')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const answer = $('#narratorAnswer');
@@ -135,7 +151,12 @@
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message || `Backend returned ${response.status}`);
-      answer.textContent = result.answer;
+      const targetLabel = $('#narratorTargetSelect')?.selectedOptions?.[0]?.textContent?.split('—')?.[0]?.trim() || 'this SPHEREx sky region';
+      const cleanedAnswer = String(result.answer || '')
+        .replace(/Deterministic pipeline analysis for SPHEREx observation obs_[a-zA-Z0-9]+:\s*/i, `Archive analysis for ${targetLabel}:\n`)
+        .replace(/SPHEREx observation obs_[a-zA-Z0-9]+/g, targetLabel)
+        .replace(/\bobs_[a-zA-Z0-9]+\b/g, targetLabel);
+      answer.textContent = cleanedAnswer;
       if (result.sources?.length) {
         const list = document.createElement('ul');
         list.id = 'narratorSources';
@@ -152,8 +173,8 @@
         }
         answer.after(list);
       }
-    } catch (error) {
-      answer.textContent = `Could not answer: ${error.message}`;
+    } catch {
+      answer.textContent = 'The narrator could not complete that response right now. Please try another sky patch or question shortly.';
     } finally {
       button.disabled = false;
     }
@@ -165,15 +186,34 @@
   let ticking = false;
   function updateScroll() {
     ticking = false;
-    const centers = sections.map(s => s.offsetTop + s.offsetHeight / 2);
-    const center = scrollY + innerHeight / 2;
-    let i = 0;
-    while (i < centers.length - 2 && center > centers[i + 1]) i++;
-    const fraction = Math.max(0, Math.min(1, (center - centers[i]) / (centers[i + 1] - centers[i])));
-    const progress = i + fraction;
+    let progress = 0;
+    if (sections.length === 1) {
+      progress = Number(sections[0].dataset.scene ?? 0);
+    } else if (sections.length > 1) {
+      const centers = sections.map(s => s.offsetTop + s.offsetHeight / 2);
+      const center = scrollY + innerHeight / 2;
+      let i = 0;
+      while (i < centers.length - 2 && center > centers[i + 1]) i++;
+      const span = Math.max(1, centers[i + 1] - centers[i]);
+      const fraction = Math.max(0, Math.min(1, (center - centers[i]) / span));
+      const aScene = Number(sections[i].dataset.scene ?? i);
+      const bScene = Number(sections[i + 1].dataset.scene ?? (i + 1));
+      progress = aScene + (bScene - aScene) * fraction;
+    }
     const nearest = Math.round(progress);
-    chapterLinks.forEach((link, n) => { link.classList.toggle('active', n === nearest); if (n === nearest) link.setAttribute('aria-current', 'step'); else link.removeAttribute('aria-current'); });
-    $('#readingProgress').style.transform = `scaleX(${Math.max(0, Math.min(1, scrollY / (document.documentElement.scrollHeight - innerHeight)))})`;
+    let activeIdx = 0, minDist = Infinity;
+    chapterLinks.forEach((link, n) => {
+      const target = link.dataset.chapterTarget !== undefined ? Number(link.dataset.chapterTarget) : n;
+      const dist = Math.abs(target - progress);
+      if (dist < minDist) { minDist = dist; activeIdx = n; }
+    });
+    chapterLinks.forEach((link, n) => {
+      const active = n === activeIdx;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'step'); else link.removeAttribute('aria-current');
+    });
+    const scrollMax = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    if ($('#readingProgress')) $('#readingProgress').style.transform = `scaleX(${Math.max(0, Math.min(1, scrollY / scrollMax))})`;
     document.documentElement.style.setProperty('--scene-progress', progress.toFixed(3));
     document.body.dataset.chapter = nearest;
     // Opening slide exit: the logo lifts away and the telescope picture
@@ -191,9 +231,14 @@
     window.ORVYX_SCROLL = progress;
     window.dispatchEvent(new CustomEvent('orvyx:scroll', { detail: progress }));
   }
+  updateScroll();
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(updateScroll); } }, { passive: true });
-  window.addEventListener('resize', () => { updateScroll(); if (!document.body.classList.contains('scene-fallback')) $('#orbitButton span').textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT'; });
-  $('#orbitButton span').textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT';
+  window.addEventListener('resize', () => {
+    updateScroll();
+    const orbitSpan = $('#orbitButton span');
+    if (orbitSpan && !document.body.classList.contains('scene-fallback')) orbitSpan.textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT';
+  });
+  if ($('#orbitButton span')) $('#orbitButton span').textContent = innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT';
   const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }), { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   const resizeObserver = new ResizeObserver(updateScroll);
@@ -204,14 +249,17 @@
   window.addEventListener('orvyx:ready', e => {
     document.body.classList.toggle('scene-ready', e.detail.webgl);
     document.body.classList.toggle('scene-fallback', !e.detail.webgl);
-    $('#orbitButton').disabled = !e.detail.webgl;
-    $('#orbitButton span').textContent = e.detail.webgl ? innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT' : 'STATIC PREVIEW';
+    if ($('#orbitButton')) $('#orbitButton').disabled = !e.detail.webgl;
+    if ($('#orbitButton span')) $('#orbitButton span').textContent = e.detail.webgl ? innerWidth <= 700 ? 'TAP TO ORBIT' : 'DRAG TO ORBIT' : 'STATIC PREVIEW';
     if (!e.detail.webgl) {
-      $('#objectInteraction').setAttribute('aria-label', 'Static preview of the artistic SPHEREx model. WebGL is unavailable.');
-      ['finishToggle','atmosphereRange','grainRange','qualitySelect','motionToggle','compareLook','resetLook'].forEach(id => { document.getElementById(id).disabled = true; });
-      $('.panel-footnote').textContent = 'Static preview. Live visual controls require a browser with WebGL.';
+      $('#objectInteraction')?.setAttribute('aria-label', 'Static preview of the artistic SPHEREx model. WebGL is unavailable.');
+      ['finishToggle','atmosphereRange','grainRange','qualitySelect','motionToggle','compareLook','resetLook'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
+      if ($('.panel-footnote')) $('.panel-footnote').textContent = 'Static preview. Live visual controls require a browser with WebGL.';
     }
-    $('#renderStatus').textContent = e.detail.webgl ? 'REAL-TIME 3D' : 'STATIC PREVIEW';
+    if ($('#renderStatus')) $('#renderStatus').textContent = e.detail.webgl ? 'REAL-TIME 3D' : 'STATIC PREVIEW';
   });
   reducedMotion.addEventListener('change', e => { if (e.matches) { settings.motion = false; applySettings(); } });
   applySettings(false);

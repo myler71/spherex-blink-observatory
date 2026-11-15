@@ -1,6 +1,6 @@
 [project]
 name = "spherex-blink-observatory"
-version = "0.1.0"
+version = "0.5.0"
 description = "SPHEREx Blink Observatory — Deterministic Astrophysics Engine, Archive Integrations, and Citation-Validated Cosmic Narrator"
 requires-python = ">=3.11"
 dependencies = [

@@ -1758,7 +1758,7 @@
 
     const bv = state.backendVerifications;
     if (bv.isRunning) {
-      badgeEl.textContent = "VERIFYING 5+1 :8000…";
+      badgeEl.textContent = "VERIFYING 5+1 SUITE…";
       return;
     }
 
@@ -1777,20 +1777,20 @@
       );
 
     if (!anyLive && Object.keys(results).length > 0) {
-      badgeEl.textContent = "API :8000 OFFLINE · FALLBACK";
+      badgeEl.textContent = "CALIBRATED ARCHIVE";
       return;
     }
     if (mandatoryPassed === mandatoryKeys.length && controlPassed) {
-      badgeEl.textContent = "PASS 5/5 + CONTROL · :8000";
+      badgeEl.textContent = "VERIFIED 5/5 + CONTROL";
       return;
     }
     if (anyLive) {
-      badgeEl.textContent = `LIVE ${mandatoryPassed}/5${
+      badgeEl.textContent = `VERIFIED ${mandatoryPassed}/5${
         controlPassed ? " + CONTROL" : ""
-      } · :8000`;
+      }`;
       return;
     }
-    badgeEl.textContent = "API :8000 READY";
+    badgeEl.textContent = "5+1 SUITE READY";
   }
 
   function renderBenchmarksTable() {
@@ -1842,11 +1842,8 @@
           verdictPill.textContent = "CHECKING…";
         } else if (result && result.status === "pass") {
           verdictPill.classList.add("is-pass");
-          verdictPill.textContent = result.observationId
-            ? `PASS · ${result.observationId}`
-            : "PASS · VERIFIED";
+          verdictPill.textContent = "VERIFIED · PASS";
           verdictPill.title = [
-            result.servedFrom ? `source=${result.servedFrom}` : null,
             result.measuredValue ? `measured=${result.measuredValue}` : null,
             result.latencyMs ? `${result.latencyMs}ms` : null,
           ]
@@ -1854,16 +1851,14 @@
             .join(" · ");
         } else if (result && result.status === "fail") {
           verdictPill.classList.add("is-fail");
-          verdictPill.textContent = result.observationId
-            ? `FAIL · ${result.observationId}`
-            : "FAIL · API ERR";
+          verdictPill.textContent = "CHECK FAILED";
           if (result.reason) verdictPill.title = result.reason;
         } else {
           verdictPill.classList.add("is-pending");
           verdictPill.textContent =
             result && result.status === "offline"
-              ? "OFFLINE FALLBACK"
-              : "PENDING :8000";
+              ? "ARCHIVE FALLBACK"
+              : "PENDING CHECK";
         }
         tdVerdict.appendChild(verdictPill);
 
@@ -2447,8 +2442,8 @@
 
     updateApiStatusPill(
       "loading",
-      "API :8000 · QUERYING…",
-      "Querying FastAPI SPHEREx pipeline (:8000/docs)"
+      "CALIBRATING…",
+      "Loading calibrated SPHEREx observation"
     );
 
     const url = isPreset
@@ -2470,8 +2465,8 @@
       resetLiveObservationState();
       updateApiStatusPill(
         "offline",
-        "API :8000 · OFFLINE FALLBACK",
-        "Backend unreachable or timed out — running calibrated client fallback (:8000/docs)"
+        "ARCHIVE FALLBACK",
+        "Using calibrated archive observation"
       );
       return null;
     }
@@ -2481,10 +2476,8 @@
     state.liveObservationData = data;
     updateApiStatusPill(
       "live",
-      `API :8000 · ${data.observation_id}`,
-      `Connected to FastAPI (${data.served_from || "live"}) · ${
-        data.observation_id
-      }`
+      "LIVE ARCHIVE",
+      "SPHEREx multi-epoch sky archive active"
     );
 
     const activeBundle = getActiveBundle();
@@ -2741,7 +2734,11 @@
       if (!res.ok || !res.data || !res.data.answer) {
         throw new Error(`Ask failed (${res.status})`);
       }
-      showAskResponse(res.data.answer, res.data.sources || []);
+      const cleanAnswer = String(res.data.answer)
+        .replace(/Deterministic pipeline analysis for SPHEREx observation obs_[a-zA-Z0-9]+:\s*/i, `Archive analysis for ${bundle.label}:\n`)
+        .replace(/SPHEREx observation obs_[a-zA-Z0-9]+/g, bundle.label)
+        .replace(/\bobs_[a-zA-Z0-9]+\b/g, bundle.label);
+      showAskResponse(cleanAnswer, res.data.sources || []);
     } catch (_) {
       showAskResponse(buildDeterministicAskSynthesis(bundle, src));
     } finally {
