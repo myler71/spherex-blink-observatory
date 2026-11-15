@@ -1,0 +1,74 @@
+{
+  "time_utc": "2026-11-14T23:38:38.574252+00:00",
+  "http_status": 200,
+  "elapsed_seconds": 10.32,
+  "quality_checks": {
+    "http_ok": true,
+    "all_source_wavelengths_match": true,
+    "all_source_flux_uncertainties_match": true,
+    "positional_association_disclaimed": true,
+    "non_simultaneous_caveat": true,
+    "sparse_coverage_caveat": true,
+    "no_unvalidated_claim_citations": true
+  },
+  "response": {
+    "observation_id": "obs_00e666311c999759",
+    "question": "Explain the infrared spectrum of source obj_001 and its measurement uncertainties.",
+    "answer": "Deterministic pipeline analysis for SPHEREx observation obs_00e666311c999759:\n\n1. Observed Infrared Spectrum & Wavelength Availability:\nThis field in Ophiucus contains 4 SPHEREx frames across 4 visits (262.22 days baseline). Selection reports 1 wavelength bins; frame-center wavelengths are [1.7925 \u00b5m, 1.8354 \u00b5m, 2.2556 \u00b5m, 2.4112 \u00b5m] (bandwidths: 0.0442 \u00b5m, 0.0453 \u00b5m, 0.0529 \u00b5m, 0.0563 \u00b5m; detectors [3]). Frame centers are not source-specific wavelengths.\nNamed catalog associations are positional candidates, not independently verified target identities.\nSource obj_001: 3 source-specific photometry points.\n- 1.8438 \u00b5m: flux 1.4369 \u00b1 0.0957 (pipeline units; calibrated integrated-flux units are not recorded in this response); SNR 15.01, MJD 61118.31072353, contaminated=True.\n- 2.2653 \u00b5m: flux 1.1522 \u00b1 0.0828 (pipeline units; calibrated integrated-flux units are not recorded in this response); SNR 13.91, MJD 61165.082971574, contaminated=False.\n- 2.4052 \u00b5m: flux 0.6437 \u00b1 0.1021 (pipeline units; calibrated integrated-flux units are not recorded in this response); SNR 6.3, MJD 60902.867699051, contaminated=False.\n\n2. What the Evidence CAN Establish:\nThe cached response provides sparse source-specific aperture photometry and per-point uncertainty where recorded. Consult the source's light curve rather than assigning a frame-center wavelength to every source. Field coordinates do not establish a named star's identity.\n\n3. What the Evidence CANNOT Establish (Measurement Limitations):\n- Non-simultaneous epochs: The 4 frames were acquired across different observation epochs spanning a baseline of 262.22 days. Intrinsic source variability or proper motion between visits modulates observed flux ratios between bands, so these discrete points do not constitute a simultaneous spectral snapshot.\n- Incomplete spectral coverage: The patch provides sparse photometric bands, not a continuous spectrophotometric curve. Sparse samples cannot establish an absorption feature or a calibrated full spectrum.\n- No composition or temperature claims: Without continuous spectral coverage and multi-epoch calibrated spectral model fits, the evidence CANNOT establish atmospheric chemical composition, molecular absorption features (such as water ice or CO2), or definitive effective temperature.\n\n4. General Sources vs. Patch Measurements:\nRetrieved NASA links are unvalidated search-result background only. They do not validate patch measurements or support claim-level citations. No mission specification is inferred from search snippets.",
+    "in_scope": true,
+    "claims": [],
+    "sources": [
+      {
+        "evidence_id": "ev_web_b9d6892433cb",
+        "source_name": "[PDF] SPHEREx: An All-Sky Infrared Spectral Survey Satellite - NASA",
+        "reference_id": "https://assets.science.nasa.gov/content/dam/science/cds/researchers/nac/apac/2024/Bock_APAC_SPHEREx_july2024_v4_Tagged.pdf",
+        "url": "https://assets.science.nasa.gov/content/dam/science/cds/researchers/nac/apac/2024/Bock_APAC_SPHEREx_july2024_v4_Tagged.pdf",
+        "source_type": "NASA Web Resource"
+      },
+      {
+        "evidence_id": "ev_web_e03677461cd6",
+        "source_name": "SPHEREx | IPAC",
+        "reference_id": "https://www.ipac.caltech.edu/project/spherex",
+        "url": "https://www.ipac.caltech.edu/project/spherex",
+        "source_type": "NASA Web Resource"
+      },
+      {
+        "evidence_id": "ev_web_48167e0e66d8",
+        "source_name": "SPHEREx | IPAC",
+        "reference_id": "https://www.ipac.caltech.edu/future/project/spherex",
+        "url": "https://www.ipac.caltech.edu/future/project/spherex",
+        "source_type": "NASA Web Resource"
+      }
+    ],
+    "validation": {
+      "status": "passed",
+      "retries": 0,
+      "accepted_claims": 0,
+      "rejected_claims": 0,
+      "rejection_reasons": []
+    }
+  },
+  "health": {
+    "archive": {
+      "status": "up",
+      "detail": "IRSA TAP/SIA configured"
+    },
+    "redis": {
+      "status": "up",
+      "detail": null
+    },
+    "postgres": {
+      "status": "up",
+      "detail": null
+    },
+    "llm": {
+      "status": "up",
+      "detail": "DeepSeek-V4.1-Flash-1017"
+    },
+    "ads": {
+      "status": "up",
+      "detail": null
+    }
+  },
+  "frontend_http_status": 200
+}

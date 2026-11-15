@@ -1,0 +1,20 @@
+nasa-corrected-api [service] — ready — up 3m49s — pid 95279
+ready=true persist=false detached=false
+INFO:     Started server process [95279]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:41080 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "GET /api/v1/observe/obs_00e666311c999759 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41080 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41094 - "GET /api/v1/observe?target=wise_0855&max_frames=4 HTTP/1.1" 502 Bad Gateway
+INFO:     127.0.0.1:41102 - "GET /api/v1/observe?target=epsilon_indi_b&max_frames=4 HTTP/1.1" 502 Bad Gateway
+INFO:     127.0.0.1:41080 - "GET /api/v1/observe?target=rw_aurigae&max_frames=4 HTTP/1.1" 502 Bad Gateway
+INFO:     127.0.0.1:41094 - "GET /api/v1/observe?target=r_draconis&max_frames=4 HTTP/1.1" 502 Bad Gateway
+INFO:     127.0.0.1:45194 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45202 - "OPTIONS /api/v1/observe HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45218 - "OPTIONS /api/v1/observe HTTP/1.1" 200 OK

@@ -1,0 +1,86 @@
+[
+  {
+    "fixture": "backend/tests/fixtures/barnards_star_sample.fits",
+    "sha256": "da169d01b8f2fe7db18f0362e80239418dcd65627c2911fc56023e6f200ff49e",
+    "obsid": "2025W33_2C_0321_1",
+    "mjd": 60902.864714549,
+    "detector": 6,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 4.915605907960838,
+    "bandwidth_um": 0.03689552201004681,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  },
+  {
+    "fixture": "backend/tests/fixtures/epsilon_indi_b_sample.fits",
+    "sha256": "7d63f0049d42ab29f3c19392653191fe547f264df72df81336d7838e9f11c5d2",
+    "obsid": "2025W17_4B_0017_1",
+    "mjd": 60789.855521771,
+    "detector": 2,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 1.5558150452932273,
+    "bandwidth_um": 0.03795164063005711,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  },
+  {
+    "fixture": "backend/tests/fixtures/negative_control_sample.fits",
+    "sha256": "3487b7cf5639abf414b556467937ff4c7aedc3f9958e6e33b88308bf97d24847",
+    "obsid": "2025W43_1A_0211_1",
+    "mjd": 60968.932874167,
+    "detector": 4,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 3.519154396960016,
+    "bandwidth_um": 0.0970968358051142,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  },
+  {
+    "fixture": "backend/tests/fixtures/r_draconis_sample.fits",
+    "sha256": "511871f33fa7b0ac265011589035b033fab0c42aac12fa71a3ae6dfd36c43eb6",
+    "obsid": "2025W17_4B_0021_1",
+    "mjd": 60789.879611007,
+    "detector": 3,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 1.6628290087156503,
+    "bandwidth_um": 0.039760824855466725,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  },
+  {
+    "fixture": "backend/tests/fixtures/rw_aurigae_sample.fits",
+    "sha256": "544e791b9b410d53231c6e8f41ae5780a5acf672d2b99092e03967c15d98eeb3",
+    "obsid": "2025W36_1A_0095_1",
+    "mjd": 60919.419646597,
+    "detector": 1,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 1.0682327037699082,
+    "bandwidth_um": 0.028261696615445066,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  },
+  {
+    "fixture": "backend/tests/fixtures/wise_0855_sample.fits",
+    "sha256": "b31bd57594dffb9717276f1a6f0ea67b14a5f7406a8b3bfd7db9cab8b28abcf0",
+    "obsid": "2025W19_1B_0116_1",
+    "mjd": 60800.700028461,
+    "detector": 3,
+    "shape": [
+      47,
+      47
+    ],
+    "central_wavelength_um": 2.364839896033792,
+    "bandwidth_um": 0.0586704195061357,
+    "qualification": "Single real stored FITS sample; not sufficient for real multi-epoch motion/variability benchmark"
+  }
+]

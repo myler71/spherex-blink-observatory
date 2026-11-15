@@ -1,0 +1,447 @@
+nasa-backend-api [service] — exited — up 1h22m
+ready=true persist=false detached=false exit=137
+INFO:     Started server process [10104]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51698 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51708 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38584 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38354 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59008 - "GET /api/v1/targets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60762 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60770 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40880 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40886 - "GET /api/v1/benchmarks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58184 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43812 - "GET /api/v1/benchmarks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43816 - "GET /api/v1/targets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55054 - "GET /api/v1/observe?target=barnards_star&max_frames=4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34568 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34574 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34584 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34596 - "POST /api/v1/observe/obs_00e666311c999759/ask HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60690 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51356 - "GET /api/v1/observe?ra=133.79513&dec=-7.24515&fov=0.08&max_frames=4&propagate=true HTTP/1.1" 502 Bad Gateway
+Future exception was never retrieved
+future: <Future finished exception=HTTPException(status_code=502, detail={'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '})>
+Traceback (most recent call last):
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 68, in search_observations
+    resp = await request_with_retries(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/http_client.py", line 24, in request_with_retries
+    resp = await client.request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/api/observe.py", line 108, in observe_patch
+    result = await container.pipeline.run(obs_query)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/pipeline.py", line 133, in run
+    candidates = await self.archive.search_observations(ra_fetch, dec_fetch, releases=releases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 103, in search_observations
+    raise RuntimeError(f"IRSA archive search failed: {exc}") from exc
+RuntimeError: IRSA archive search failed: 
+
+The above exception was the direct cause of the following exception:
+
+fastapi.exceptions.HTTPException: 502: {'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '}
+Future exception was never retrieved
+future: <Future finished exception=HTTPException(status_code=502, detail={'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '})>
+Traceback (most recent call last):
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 68, in search_observations
+    resp = await request_with_retries(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/http_client.py", line 24, in request_with_retries
+    resp = await client.request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/api/observe.py", line 108, in observe_patch
+    result = await container.pipeline.run(obs_query)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/pipeline.py", line 133, in run
+    candidates = await self.archive.search_observations(ra_fetch, dec_fetch, releases=releases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 103, in search_observations
+    raise RuntimeError(f"IRSA archive search failed: {exc}") from exc
+RuntimeError: IRSA archive search failed: 
+
+The above exception was the direct cause of the following exception:
+
+fastapi.exceptions.HTTPException: 502: {'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '}
+INFO:     127.0.0.1:49658 - "GET /api/v1/observe?ra=133.79513&dec=-7.24515&fov=0.08&max_frames=4&propagate=true HTTP/1.1" 502 Bad Gateway
+INFO:     127.0.0.1:51056 - "GET /api/v1/health HTTP/1.1" 200 OK
+Future exception was never retrieved
+future: <Future finished exception=HTTPException(status_code=502, detail={'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '})>
+Traceback (most recent call last):
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 68, in search_observations
+    resp = await request_with_retries(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/http_client.py", line 24, in request_with_retries
+    resp = await client.request(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/api/observe.py", line 108, in observe_patch
+    result = await container.pipeline.run(obs_query)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/pipeline.py", line 133, in run
+    candidates = await self.archive.search_observations(ra_fetch, dec_fetch, releases=releases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 103, in search_observations
+    raise RuntimeError(f"IRSA archive search failed: {exc}") from exc
+RuntimeError: IRSA archive search failed: 
+
+The above exception was the direct cause of the following exception:
+
+fastapi.exceptions.HTTPException: 502: {'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '}
+INFO:     127.0.0.1:53860 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:39306 - "GET /api/v1/observe/obs_00e666311c999759 HTTP/1.1" 200 OK
+Future exception was never retrieved
+future: <Future finished exception=HTTPException(status_code=502, detail={'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '})>
+Traceback (most recent call last):
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 68, in search_observations
+    own_client = self._client is None
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/http_client.py", line 24, in request_with_retries
+    code = exc.response.status_code if exc.response is not None else "unknown"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/api/observe.py", line 108, in observe_patch
+    container.inflight_observe[cache_key] = fut
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/pipeline.py", line 133, in run
+    candidates = await self.archive.search_observations(ra_fetch, dec_fetch, releases=releases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 103, in search_observations
+    plane_id=str(r.get("plane_id") or ""),
+RuntimeError: IRSA archive search failed: 
+
+The above exception was the direct cause of the following exception:
+
+fastapi.exceptions.HTTPException: 502: {'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '}
+Future exception was never retrieved
+future: <Future finished exception=HTTPException(status_code=502, detail={'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '})>
+Traceback (most recent call last):
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 136, in handle_async_request
+    raise exc
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_async/http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 68, in search_observations
+    own_client = self._client is None
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/http_client.py", line 24, in request_with_retries
+    code = exc.response.status_code if exc.response is not None else "unknown"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/home/myler71/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/api/observe.py", line 108, in observe_patch
+    container.inflight_observe[cache_key] = fut
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/pipeline.py", line 133, in run
+    candidates = await self.archive.search_observations(ra_fetch, dec_fetch, releases=releases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/archive/irsa.py", line 103, in search_observations
+    plane_id=str(r.get("plane_id") or ""),
+RuntimeError: IRSA archive search failed: 
+
+The above exception was the direct cause of the following exception:
+
+fastapi.exceptions.HTTPException: 502: {'code': 'UPSTREAM_CUTOUT_FAILURE', 'message': 'IRSA archive search failed: '}
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:     Waiting for background tasks to complete. (CTRL+C to force quit)

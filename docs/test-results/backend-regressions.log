@@ -1,0 +1,25 @@
+........................................................................ [ 84%]
+.............                                                            [100%]
+=============================== warnings summary ===============================
+backend/tests/integration/test_api_endpoints.py: 12 warnings
+backend/tests/integration/test_observation_cache_expiry.py: 48 warnings
+backend/tests/integration/test_observe_pipeline.py: 4 warnings
+backend/tests/unit/test_align_detect_link.py: 8 warnings
+backend/tests/unit/test_ask.py: 36 warnings
+backend/tests/unit/test_benchmark_target_selection.py: 18 warnings
+backend/tests/unit/test_comparisons_stack_spectrum_display.py: 6 warnings
+backend/tests/unit/test_motion_variability.py: 12 warnings
+backend/tests/unit/test_narrator_graph.py: 6 warnings
+backend/tests/unit/test_synthetic_restoration.py: 30 warnings
+  /home/myler71/Projects/spherex-blink-observatory/.venv/lib/python3.11/site-packages/astropy/wcs/wcs.py:695: FITSFixedWarning: The WCS transformation has more axes (2) than the image it is associated with (0)
+    warnings.warn(
+
+backend/tests/integration/test_jobs.py: 12 warnings
+backend/tests/integration/test_observation_cache_expiry.py: 5 warnings
+backend/tests/unit/test_benchmark_target_selection.py: 3 warnings
+backend/tests/unit/test_synthetic_restoration.py: 3 warnings
+  /run/media/myler71/Daddy_s Home/Nasa/Nasa Space Apps/backend/app/science/comparisons.py:96: RuntimeWarning: All-NaN slice encountered
+    med = np.nanmedian(stack, axis=0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+85 passed, 1 deselected, 203 warnings in 18.79s

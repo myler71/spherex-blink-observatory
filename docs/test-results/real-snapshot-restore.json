@@ -1,0 +1,9 @@
+{
+  "provenance": "Replay of captured real cached observation; not newly acquired archive data",
+  "context_id": "obs_00e666311c999759",
+  "before_restore": 404,
+  "after_restore": 200,
+  "ai_after_restore": 200,
+  "provider": "template (offline replay)",
+  "contains_measured_flux_uncertainty": true
+}

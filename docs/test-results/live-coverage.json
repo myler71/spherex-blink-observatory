@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-11-14T23:14:28.328087+00:00",
+  "targets": [
+    {
+      "target": "barnards_star",
+      "provenance": "live IRSA TAP coverage probe at preset reference coordinates; not epoch-propagated and not a science measurement",
+      "client_timeout_sec": 12,
+      "error_type": "ReadTimeout",
+      "error_message": "IRSA did not return response before timeout",
+      "elapsed_sec": 13.06
+    },
+    {
+      "target": "wise_0855",
+      "provenance": "live IRSA TAP coverage probe at preset reference coordinates; not epoch-propagated and not a science measurement",
+      "client_timeout_sec": 12,
+      "error_type": "ReadTimeout",
+      "error_message": "IRSA did not return response before timeout",
+      "elapsed_sec": 13.04
+    },
+    {
+      "target": "epsilon_indi_b",
+      "provenance": "live IRSA TAP coverage probe at preset reference coordinates; not epoch-propagated and not a science measurement",
+      "client_timeout_sec": 12,
+      "error_type": "ReadTimeout",
+      "error_message": "IRSA did not return response before timeout",
+      "elapsed_sec": 13.03
+    },
+    {
+      "target": "rw_aurigae",
+      "provenance": "live IRSA TAP coverage probe at preset reference coordinates; not epoch-propagated and not a science measurement",
+      "client_timeout_sec": 12,
+      "error_type": "ReadTimeout",
+      "error_message": "IRSA did not return response before timeout",
+      "elapsed_sec": 13.04
+    },
+    {
+      "target": "r_draconis",
+      "provenance": "live IRSA TAP coverage probe at preset reference coordinates; not epoch-propagated and not a science measurement",
+      "client_timeout_sec": 12,
+      "error_type": "ReadTimeout",
+      "error_message": "IRSA did not return response before timeout",
+      "elapsed_sec": 13.04
+    }
+  ]
+}

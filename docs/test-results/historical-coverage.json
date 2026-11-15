@@ -1,0 +1,36 @@
+{
+  "provenance": "Existing checked-in TAP summary; historical, not refreshed during this test run",
+  "source_file": "backend/tests/fixtures/tap_summary.json",
+  "targets": {
+    "barnards_star": {
+      "total_rows": 363,
+      "num_visits": 7,
+      "baseline_days": 402.76
+    },
+    "wise_0855": {
+      "total_rows": 258,
+      "num_visits": 4,
+      "baseline_days": 373.59
+    },
+    "epsilon_indi_b": {
+      "total_rows": 465,
+      "num_visits": 7,
+      "baseline_days": 525.62
+    },
+    "rw_aurigae": {
+      "total_rows": 335,
+      "num_visits": 6,
+      "baseline_days": 380.48
+    },
+    "r_draconis": {
+      "total_rows": 2493,
+      "num_visits": 19,
+      "baseline_days": 520.41
+    },
+    "negative_control": {
+      "total_rows": 238,
+      "num_visits": 6,
+      "baseline_days": 195.91
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "target": "wise_0855",
+  "protocol": "TAP asynchronous query",
+  "phases": [],
+  "query": "SELECT TOP 1 o.observationid FROM spherex.observation o JOIN spherex.plane p ON p.obsid=o.obsid WHERE 1=CONTAINS(POINT('ICRS',133.81890825,-7.247048),p.poly)",
+  "error_type": "RemoteProtocolError",
+  "error": "Server disconnected without sending a response.",
+  "elapsed_seconds": 17.72
+}
