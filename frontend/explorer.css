@@ -40,13 +40,13 @@
 
 :root {
   color-scheme: dark;
-  --bg-void: #07090e;
-  --card-bg: rgba(12, 16, 23, 0.84);
-  --card-border: rgba(255, 255, 255, 0.12);
-  --text-primary: #eef1f4;
-  --text-muted: #939da9;
+  --bg-void: var(--orvyx-void);
+  --card-bg: var(--orvyx-panel);
+  --card-border: var(--orvyx-hairline);
+  --text-primary: var(--orvyx-paper);
+  --text-muted: var(--orvyx-muted);
   --text-dim: #66707c;
-  --amber: #e8a454;
+  --amber: var(--orvyx-amber);
   --amber-bright: #f8c67d;
   --amber-glow: rgba(240, 169, 78, 0.45);
   --cyan-line: #497896;
