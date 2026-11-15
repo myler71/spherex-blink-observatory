@@ -124,8 +124,34 @@
     $('#narratorButton')?.setAttribute('aria-expanded', String(open));
     if ($('#narratorButton')?.firstChild) $('#narratorButton').firstChild.textContent = open ? 'Close the preview ' : 'Meet your guide ';
     $('#narrator')?.classList.toggle('demo-open', open);
+    if (open) $('#narratorQuestion')?.focus();
     requestAnimationFrame(updateScroll);
   });
+  const wavelength = $('#illustrativeWavelength');
+  function publishWavelength() {
+    const number = Number(wavelength.value);
+    if (!Number.isFinite(number)) return;
+    const value = Math.min(5, Math.max(.75, number));
+    wavelength.value = String(value);
+    wavelength.setAttribute('aria-valuetext', `${value.toFixed(2)} micrometres, illustrative view`);
+    wavelength.style.setProperty('--control-value', value);
+    wavelength.style.setProperty('--attr-min', .75);
+    wavelength.style.setProperty('--attr-max', 5);
+    wavelength.style.setProperty('--range-progress', `${(value - .75) / 4.25 * 100}%`);
+    $('#wavelengthValue').textContent = `${value.toFixed(2)} µm`;
+    window.ORVYX_WAVELENGTH = value;
+    window.dispatchEvent(new CustomEvent('orvyx:wavelength', { detail: value }));
+  }
+  if (wavelength) { wavelength.addEventListener('input', publishWavelength); publishWavelength(); }
+  const observationButtons = [...document.querySelectorAll('[data-observation]')];
+  function selectObservation(index) {
+    if (!Number.isInteger(index) || index < 0 || index > 2) return;
+    observationButtons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.observation) === index)));
+    window.ORVYX_OBSERVATION = index;
+    window.dispatchEvent(new CustomEvent('orvyx:observation', { detail: index }));
+  }
+  observationButtons.forEach(button => button.addEventListener('click', () => selectObservation(Number(button.dataset.observation))));
+  if (observationButtons.length) selectObservation(1);
   const narratorTargetSelect = $('#narratorTargetSelect');
   const observationIdInput = $('#observationId');
   if (narratorTargetSelect && observationIdInput) {
