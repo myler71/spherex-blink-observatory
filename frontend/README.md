@@ -8,7 +8,7 @@ A self-contained Three.js concept landing page inspired by the way SPHEREx obser
 python3 -m http.server 4173 --bind 0.0.0.0
 ```
 
-Then open `http://localhost:4173`.
+Run this command from `frontend/`, then open `http://localhost:4173`. Use HTTP, not a double-clicked `file://` HTML document: native JavaScript modules and GLB loading require an HTTP origin in a normal browser.
 
 ## Visual direction
 
