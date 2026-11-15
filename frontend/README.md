@@ -39,3 +39,12 @@ Run this command from `frontend/`, then open `http://localhost:4173`. Use HTTP, 
 ## Stable visuals and coordinate workspace
 
 The previous GPU post-processing chain has been removed to avoid bloom-related black frames. The slider adjusts a decorative CSS ambient glow over the directly rendered 3D scene; it is not scientific image processing. The separate 2D Observatory retains its original radiometry, dipole canvases, SED plot, and API behavior.
+
+## Controls and verification
+
+- Each sculpture supports drag, left/right arrow keys, Home reset, and an orbit button. The wavelength slider and observation timeline affect illustrative sculptures only.
+- Cinematic view contains finishing controls, Auto/High/Efficient quality, ambient pause, and a press-and-hold comparison. Quality reduction changes DPR, stars, and shadows, not sculpture geometry.
+- Canvas sizing follows the actual fixed scene surface, including fullscreen and orientation changes. Revisioned script/style URLs prevent cached pre-polish controllers from loading against named-scene HTML.
+- WebGL failure is labelled `STATIC PREVIEW`; a missing GLB uses the labelled procedural `3D FALLBACK`. Neither is reported as the loaded supplied model.
+- Run `node --test frontend/tests/*.test.mjs` from the repository root. For runtime proof, check each page and scene in a foreground browser, including reduced motion and fullscreen.
+- Performance acceptance remains open: earlier foreground samples exceeded 30 FPS, but later delivered-build samples fell below it. A contemporaneous release-build control also slowed; the cause is unresolved. Do not treat the earlier samples as final-build acceptance.
