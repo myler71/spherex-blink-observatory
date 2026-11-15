@@ -1,0 +1,15 @@
+:root {
+  --orvyx-void: #050608;
+  --orvyx-panel: #090b0f;
+  --orvyx-paper: #f1f0e8;
+  --orvyx-muted: #a6abb5;
+  --orvyx-amber: #f59e0b;
+  --orvyx-cyan: #38bdf8;
+  --orvyx-hairline: rgba(255,255,255,.10);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .site-header .brand, .main-header .orvyx-wordmark { view-transition-name: orvyx-brand; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; }
+}
