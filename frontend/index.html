@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#05080d">
+  <meta name="description" content="A cinematic journey beyond visible light. Explore the idea behind ORVYX, inspired by the SPHEREx mission.">
+  <title>ORVYX — Beyond the expected</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/manrope.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/narrative-finale.webp" as="image">
+  <link rel="preload" href="assets/orbital-noir.webp" as="image" media="(min-width:701px)">
+  <link rel="preload" href="assets/orbital-noir-mobile.webp" as="image" media="(max-width:700px)">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v16m-6-6 6 6 6-6"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h5m4 0h7M4 17h9m4 0h3M9 4v6m4 4v6"/><circle cx="11" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-30 12 12)"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  </defs></svg>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="scene-stage" aria-hidden="true"><canvas id="scene"></canvas><div class="safe-bloom" id="safeBloom"></div><div class="scene-shade"></div><div class="scene-grain"></div></div>
+  <div class="reading-progress" aria-hidden="true"><span id="readingProgress"></span></div>
+
+  <header class="site-header">
+    <a href="#top" class="brand" aria-label="ORVYX home"><svg class="brand-mark" width="39" height="32" viewBox="0 0 43 34" aria-hidden="true"><circle cx="21" cy="17" r="12.4" fill="none" stroke="currentColor" stroke-width="5.3"/><path d="M1 27.5 42 5.7 8.5 28.2Z" fill="#d9a36d"/><path d="m21 10 1.4 4.5L27 16l-4.6 1.5L21 22l-1.5-4.5L15 16l4.5-1.5Z" fill="currentColor"/></svg><span>ORVYX</span><span class="brand-period">.</span></a>
+    <nav class="desktop-nav" aria-label="Main navigation"><a href="#mission">The mission</a><a href="#observe">Beyond visible</a><a href="#narrator">Cosmic narrator <span class="new-tag">NEW</span></a><a href="explorer.html" id="navObservatoryLink">2D Blink Observatory <span class="new-tag">LIVE</span></a></nav>
+    <div class="header-actions"><a class="header-launch" id="headerObservatoryBtn" href="explorer.html">Open Blink Observatory <svg class="icon"><use href="#i-arrow"/></svg></a><button class="header-launch" data-explorer>Enter the experience <svg class="icon"><use href="#i-arrow"/></svg></button><button class="menu-button icon-button" id="menuButton" aria-label="Open navigation" aria-expanded="false" aria-controls="mobileNav"><svg class="icon"><use href="#i-menu"/></svg></button></div>
+  </header>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" hidden><a href="#telescope">The telescope <span>01</span></a><a href="#mission">The mission <span>02</span></a><a href="#observe">Beyond visible <span>03</span></a><a href="#compare">A universe in motion <span>04</span></a><a href="#narrator">Cosmic narrator <span>05</span></a><a href="explorer.html">2D Blink Observatory <span>LIVE</span></a></nav>
+
+  <aside class="chapter-nav" aria-label="Journey chapters"><span class="rail-title">THE JOURNEY</span><a href="#top" class="chapter active" aria-label="Chapter 1: ORVYX" aria-current="step"><span>01</span><i></i></a><a href="#telescope" class="chapter" aria-label="Chapter 2: The telescope"><span>02</span><i></i></a><a href="#mission" class="chapter" aria-label="Chapter 3: The mission"><span>03</span><i></i></a><a href="#observe" class="chapter" aria-label="Chapter 4: Beyond visible"><span>04</span><i></i></a><a href="#compare" class="chapter" aria-label="Chapter 5: A universe in motion"><span>05</span><i></i></a><a href="#narrator" class="chapter" aria-label="Chapter 6: Cosmic narrator"><span>06</span><i></i></a></aside>
+
+  <main id="main">
+    <section class="story-section closing-section finale-section intro-section" id="top" data-scene="0" aria-labelledby="introTitle">
+      <div class="finale-image" aria-hidden="true"></div>
+      <div class="story-copy closing-copy finale-copy intro-copy">
+        <div class="eyebrow"><svg class="icon"><use href="#i-spark"/></svg> ORVYX PRESENTS</div>
+        <h2 id="introTitle" class="finale-logo"><span class="finale-o">O<span>✦</span></span>RVYX</h2>
+        <p class="finale-tagline">EXPLORE BEYOND THE EXPECTED</p>
+        <div class="finale-divider"><i></i><span>✦</span><i></i></div>
+        <div class="closing-actions"><a class="button button-light" id="introObservatoryBtn" href="explorer.html">Open 2D Blink Observatory <svg class="icon"><use href="#i-arrow"/></svg></a><a class="button button-light" href="#telescope">Meet the telescope <svg class="icon"><use href="#i-down"/></svg></a><button class="button button-ghost" id="exploreButton" data-explorer>Discover the explorer <svg class="icon"><use href="#i-arrow"/></svg></button><a class="inline-link" href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/" target="_blank" rel="noopener">Explore the challenge <svg class="icon"><use href="#i-arrow"/></svg></a></div>
+        <div class="concept-label"><i></i> INTERACTIVE 3D + 2D OBSERVATORY <span>·</span> LIVE BACKEND API (:8000/DOCS) CONNECTED</div>
+      </div>
+      <a class="intro-scroll" href="#telescope" aria-label="Scroll to transition into the 3D telescope"><span class="scroll-track"><i></i></span><span>SCROLL — THE PICTURE BECOMES REAL</span><svg class="icon"><use href="#i-down"/></svg></a>
+      <div class="finale-credit">ILLUSTRATIVE IMAGE · NOT A SPHEREX OBSERVATION</div>
+    </section>
+
+    <section class="story-section hero" id="telescope" data-scene="1" aria-labelledby="heroTitle">
+      <div class="hero-topline"><span class="status-dot"></span><span>A NEW PERSPECTIVE ON THE UNIVERSE</span><span class="eyebrow-line"></span></div>
+      <div class="story-copy hero-copy">
+        <h1 id="heroTitle">The sky is<br>not <em>still.</em></h1>
+        <p class="hero-description">Beyond the light we see,<br class="desktop-break"> a universe of stories is waiting.</p>
+        <p class="hero-support">Travel through light, time, and the unexpected.<br>Discover the sky with a different kind of perspective.</p>
+        <div class="hero-actions"><a href="#mission" class="button button-light">Begin the journey <svg class="icon"><use href="#i-arrow"/></svg></a><a href="explorer.html" class="button button-ghost" id="heroObservatoryBtn">Open 2D Blink Observatory <svg class="icon"><use href="#i-arrow"/></svg></a><button class="text-button" id="heroLookButton"><span class="mini-orbit"><svg class="icon"><use href="#i-sliders"/></svg></span>The cinematic view</button></div>
+      </div>
+      <div class="object-hitbox" id="objectInteraction" role="group" aria-label="Interactive 3D SPHEREx telescope. Drag to rotate."><button class="orbit-hint" id="orbitButton" aria-label="Rotate the telescope"><svg class="icon"><use href="#i-orbit"/></svg><span>DRAG TO ORBIT</span></button></div>
+      <div class="object-caption"><span class="caption-tick"></span><div><span class="tiny-label">MEET YOUR WINDOW TO THE UNSEEN</span><strong>SPHEREx<span> / THE ALL-SKY SURVEYOR</span></strong></div></div>
+      <div class="hero-bottom"><div class="mission-credit"><span class="tiny-label">INSPIRED BY A MISSION. DRIVEN BY CURIOSITY.</span><span>NASA’s SPHEREx <span class="credit-separator">/</span> An independent creative concept</span></div><a class="scroll-cue" href="#mission"><span class="scroll-track"><i></i></span><span>SCROLL TO DISCOVER</span><svg class="icon"><use href="#i-down"/></svg></a><span class="hero-index"><b>02</b><span>/ 06</span></span></div>
+    </section>
+
+    <section class="story-section mission-section" id="mission" data-scene="2" aria-labelledby="missionTitle">
+      <div class="story-copy reveal"><div class="eyebrow"><span class="section-number">02</span> THE MISSION <span class="eyebrow-line"></span></div><h2 id="missionTitle">Built to see<br>the <em>unseen.</em></h2><p>Some of the universe’s most remarkable stories are written in light our eyes can’t see.</p><p class="secondary-copy">SPHEREx surveys the entire sky in near-infrared light. ORVYX is an invitation to get closer to that perspective.</p><div class="mission-stats"><div><strong>102<span> /</span></strong><span>SPECTRAL BANDS</span></div><div><strong>6 <small>months</small></strong><span>PER ALL-SKY SURVEY</span></div></div><a class="inline-link" href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">Meet the real mission <svg class="icon"><use href="#i-arrow"/></svg></a><div class="science-note"><span>✧</span> Artist’s 3D interpretation. Not an official NASA or engineering model.</div></div>
+    </section>
+
+    <section class="editorial-panel optics-panel" aria-labelledby="opticsTitle">
+      <div class="editorial-image editorial-optics" data-parallax aria-hidden="true"></div>
+      <div class="editorial-overlay"></div>
+      <div class="editorial-label"><span>ORVYX / FIELD NOTE 01</span><span>THE INSTRUMENT</span></div>
+      <div class="editorial-copy editorial-left"><span class="editorial-kicker">THE ART OF OBSERVATION <i></i> 01</span><h2 id="opticsTitle">DESIGNED TO<br><span>LOOK DEEPER.</span></h2><p>A different way to see begins with an instrument made to look beyond the visible.</p><a href="#observe" class="editorial-link">DISCOVER INFRARED <span>↗</span></a></div>
+      <div class="editorial-credit">ARTISTIC INTERPRETATION · NOT AN INSTRUMENT PHOTOGRAPH</div>
+    </section>
+
+    <section class="story-section light-section" id="observe" data-scene="3" aria-labelledby="observeTitle">
+      <div class="story-copy copy-right reveal"><div class="eyebrow"><span class="section-number">03</span> BEYOND THE VISIBLE <span class="eyebrow-line"></span></div><h2 id="observeTitle">A different<br>kind of <em>light.</em></h2><p>What if looking at the same sky differently could change the questions we ask?</p><p class="secondary-copy">Near-infrared observations reveal details beyond visible light. Each wavelength adds another piece to the picture.</p><div class="spectrum"><div class="spectrum-labels"><span>VISIBLE LIGHT</span><span>NEAR INFRARED</span></div><div class="spectrum-bar"><i></i></div><div class="spectrum-markers"><span>WHAT WE SEE</span><span>WHAT WE CAN DISCOVER <svg class="icon"><use href="#i-arrow"/></svg></span></div></div><div class="science-note"><span>✧</span> Illustrative planet and false colors. Not SPHEREx imagery.</div></div>
+    </section>
+
+    <section class="story-section compare-section" id="compare" data-scene="4" aria-labelledby="compareTitle">
+      <div class="story-copy reveal"><div class="eyebrow"><span class="section-number">04</span> A UNIVERSE IN MOTION <span class="eyebrow-line"></span></div><h2 id="compareTitle">Look again.<br>Then <em>again.</em></h2><p>The same patch of sky.<br>A different moment in time.</p><p class="secondary-copy">Compare observations, notice a shifting point of light, and follow the evidence. A small change can be the beginning of a bigger question.</p><div class="observation-timeline"><span class="timeline-track"></span><div><i></i><span>OBSERVATION</span><strong>01</strong></div><div><i></i><span>OBSERVATION</span><strong>02</strong></div><div><i></i><span>OBSERVATION</span><strong>03</strong></div></div><div class="hero-actions"><a href="explorer.html" class="button button-light" id="compareObservatoryBtn">Launch 2D Blink Observatory <svg class="icon"><use href="#i-arrow"/></svg></a></div><div class="science-note"><span>✧</span> Demonstration only. The points do not represent measured sky motion.</div></div>
+    </section>
+
+    <section class="editorial-panel field-panel" aria-labelledby="fieldTitle">
+      <div class="editorial-image editorial-field" data-parallax aria-hidden="true"></div><div class="editorial-overlay field-overlay"></div>
+      <div class="editorial-label"><span>ORVYX / FIELD NOTE 02</span><span>THE SKY IN MOTION</span></div>
+      <div class="editorial-copy editorial-center"><span class="editorial-kicker">A UNIVERSE OF CHANGE <i></i> 02</span><h2 id="fieldTitle">THE SKY<br><span>NEVER STANDS STILL.</span></h2><p>One patch of sky. Different moments in time. A new perspective on everything in between.</p><a href="#narrator" class="editorial-link">MEET YOUR FIELD GUIDE <span>↗</span></a></div>
+      <div class="editorial-credit">ILLUSTRATIVE FIELD · NOT SPHEREX DATA</div>
+    </section>
+
+    <section class="story-section narrator-section" id="narrator" data-scene="5" aria-labelledby="narratorTitle">
+      <div class="story-copy reveal"><div class="eyebrow"><span class="section-number">05</span> YOUR COSMIC FIELD GUIDE <span class="eyebrow-line"></span></div><h2 id="narratorTitle">The universe<br>has a <em>voice.</em></h2><p>Meet the Cosmic Narrator.<br>A little context. A lot more wonder.</p><p class="secondary-copy">Ask about a sky observation using retrieved evidence.</p><div class="narrator-values"><span><i></i> SKY CONTEXT</span><span><i></i> LINKED EVIDENCE</span></div><div class="hero-actions"><button class="button button-outline" id="narratorButton" aria-expanded="false" aria-controls="narratorDemo">Meet your guide <svg class="icon"><use href="#i-spark"/></svg></button><a href="explorer.html" class="button button-ghost" id="narratorObservatoryBtn">Open Full 2D Observatory <svg class="icon"><use href="#i-arrow"/></svg></a></div><div class="narrator-demo" id="narratorDemo" hidden><div class="demo-label"><svg class="icon"><use href="#i-spark"/></svg> COSMIC NARRATOR <span>LIVE</span></div><form id="narratorForm"><label for="observationId">Observation ID</label><input id="observationId" name="observationId" required placeholder="obs_…" value="obs_00e666311c999759" autocomplete="off"><label for="narratorQuestion">Question about this patch</label><textarea id="narratorQuestion" name="question" required minlength="2" maxlength="500">What does the SPHEREx spectrum tell us about this patch?</textarea><button class="button button-outline" type="submit">Ask the narrator</button></form><p id="narratorAnswer" role="status" aria-live="polite"></p><small>Uses the backend's observation evidence. Create an observation with the API before asking.</small></div><div class="science-note"><span>✧</span> Results depend on available observations and may require verification.</div></div>
+    </section>
+
+
+  </main>
+
+  <footer class="site-footer"><div class="footer-top"><a class="brand" href="#top" aria-label="ORVYX home"><svg class="brand-mark" width="39" height="32" viewBox="0 0 43 34" aria-hidden="true"><circle cx="21" cy="17" r="12.4" fill="none" stroke="currentColor" stroke-width="5.3"/><path d="M1 27.5 42 5.7 8.5 28.2Z" fill="#d9a36d"/></svg><span>ORVYX</span><span class="brand-period">.</span></a><span class="footer-tagline">EXPLORE BEYOND THE EXPECTED.</span><a class="back-top" href="#top">BACK TO THE STARS <svg class="icon"><use href="#i-arrow"/></svg></a></div><div class="footer-bottom"><span>Independent creative concept. Not affiliated with NASA.</span><div><a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">SPHEREx mission ↗</a><button id="creditsButton">About this experience ↗</button></div><span>MADE FOR THE CURIOUS <span class="footer-star">✦</span></span></div></footer>
+
+  <div class="visual-dock" id="visualDock"><span class="realtime-status"><i></i><span id="renderStatus">LOADING 3D</span></span><button class="visual-toggle" id="visualToggle" aria-expanded="false" aria-controls="visualPanel"><svg class="icon"><use href="#i-sliders"/></svg><span id="lookName">Cinematic finish</span><span class="look-status" id="lookStatus">ON</span></button></div>
+  <section class="visual-panel" id="visualPanel" aria-labelledby="visualTitle" hidden><div class="panel-heading"><div><span class="tiny-label">CRAFT YOUR PERSPECTIVE</span><h3 id="visualTitle">Visual studio<span>✧</span></h3></div><button class="icon-button" id="closeVisual" aria-label="Close visual settings"><svg class="icon"><use href="#i-close"/></svg></button></div><p class="panel-intro">A little atmosphere. All the detail.</p><div class="look-preview" aria-hidden="true"><div class="look-preview-orbit"></div><span>ORVYX ORIGINAL FINISH</span><span class="preview-badge">FILMIC</span></div><label class="setting-row" for="finishToggle"><span><strong>Cinematic finishing</strong><small>Subtle light and contrast.</small></span><input id="finishToggle" type="checkbox" class="switch-input" checked><span class="switch" aria-hidden="true"></span></label><div class="range-setting"><div><label for="atmosphereRange">Ambient glow</label><output for="atmosphereRange" id="atmosphereValue">35%</output></div><input id="atmosphereRange" type="range" min="0" max="100" value="35" aria-label="Light bloom intensity"></div><div class="range-setting"><div><label for="grainRange">Film texture</label><output for="grainRange" id="grainValue">18%</output></div><input id="grainRange" type="range" min="0" max="100" value="18" aria-label="Film grain intensity"></div><div class="setting-row compact"><label for="qualitySelect">Render quality</label><select id="qualitySelect"><option value="auto">Auto</option><option value="high">High</option><option value="efficient">Efficient</option></select></div><label class="setting-row compact" for="motionToggle"><span>Ambient motion</span><input id="motionToggle" class="switch-input" type="checkbox" checked><span class="switch" aria-hidden="true"></span></label><div class="panel-actions"><button id="compareLook">Hold to compare</button><button id="resetLook">Reset look <span>↺</span></button></div><p class="panel-footnote">Visual effects only. Decorative overlay only; scientific imagery is not altered.</p></section>
+
+  <dialog id="explorerDialog" class="experience-dialog"><button class="dialog-close icon-button" data-close-dialog aria-label="Close dialog"><svg class="icon"><use href="#i-close"/></svg></button><div class="dialog-orbit" aria-hidden="true"><svg class="icon"><use href="#i-orbit"/></svg></div><div class="eyebrow">LIVE SCIENTIFIC OBSERVATORY</div><h2>The next<br><em>perspective.</em></h2><p>Launch the ORVYX 2D SPHEREx Blink Observatory to inspect all five NASA challenge targets, stretch WiseView asinh radiometry, compare multi-epoch dipole difference frames, and query the Cosmic Narrator.</p><div class="dialog-note"><i></i> Interactive 2D SPHEREx Blink Workspace ready.</div><a class="button button-light" href="explorer.html">Open 2D Blink Observatory <svg class="icon"><use href="#i-arrow"/></svg></a><p><a class="inline-link" href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener">Open Backend API Docs (:8000/docs) <svg class="icon"><use href="#i-arrow"/></svg></a></p><p><a class="inline-link" href="https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/" target="_blank" rel="noopener">Read the official challenge ↗</a></p></dialog>
+  <dialog id="creditsDialog" class="experience-dialog credits-dialog"><button class="dialog-close icon-button" data-close-dialog aria-label="Close dialog"><svg class="icon"><use href="#i-close"/></svg></button><div class="eyebrow">BEHIND THE EXPERIENCE</div><h2>Wonder, with<br><em>perspective.</em></h2><p>A real-time Three.js scene using the supplied artistic SPHEREx model, physically based materials, soft contact shading, restrained bloom, and an original cinematic color finish.</p><p>The star field, planets, light ribbons, and narrator sculpture are illustrative. They are not scientific observations. The model is not an official NASA engineering asset.</p><a class="inline-link" href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">Explore the actual mission <svg class="icon"><use href="#i-arrow"/></svg></a></dialog>
+  <div class="sr-only" id="announcer" role="status" aria-live="polite"></div>
+  <script type="importmap">{"imports":{"three":"./three.module.js","three/addons/":"./addons/"}}</script>
+  <script src="app.js" defer></script>
+  <script type="module" src="scene.js"></script>
+</body>
+</html>
