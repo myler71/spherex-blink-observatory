@@ -332,7 +332,7 @@ if (renderer) {
   for (let k = 0; k < 28; k++) {
     const points = [], latitude = -1.15 + k / 27 * 2.3, phase = k * 2.399963;
     for (let j = 0; j <= 110; j++) { const u = j / 110 * Math.PI * 2, lat = latitude + .14 * Math.sin(3 * u + phase), r = 1.18 + .018 * Math.sin(4 * u + phase); points.push(new THREE.Vector3(r * Math.cos(lat) * Math.cos(u), r * Math.sin(lat), r * Math.cos(lat) * Math.sin(u))); }
-    const material = new THREE.MeshBasicMaterial({ color: new THREE.Color([0xe8bb87, 0x929cc4, 0xb49ab5, 0xd7c4ab][k % 4]).multiplyScalar(1.4), transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false });
+    const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(k % 7 === 0 ? 0x38bdf8 : 0xc6ab8c).multiplyScalar(1.4), transparent: true, opacity: .5, blending: THREE.AdditiveBlending, depthWrite: false });
     const filament = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 115, k % 3 ? .004 : .009, 5, false), material, core, false); filament.userData.skipAO = true; narratorFilaments.push(material);
   }
   const narratorRings = [];
