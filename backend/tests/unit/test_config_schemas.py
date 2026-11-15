@@ -12,7 +12,7 @@ from tests.synthetic.fits_generator import SyntheticScenario, generate_synthetic
 
 
 def test_settings_defaults_reference_verified_releases_and_flags() -> None:
-    s = Settings()
+    s = Settings(_env_file=None)  # type: ignore[call-arg]
     assert "spherex_dr1" in s.spherex_releases
     assert "spherex_qr3" in s.spherex_releases
     assert 12 not in s.spherex_reject_flag_bits  # FULLSAMPLE must not reject
