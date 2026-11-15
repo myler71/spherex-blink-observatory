@@ -3,7 +3,7 @@
   document.documentElement.classList.add('js');
   const $ = (selector) => document.querySelector(selector);
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const defaults = { enabled: true, bloom: 35, grain: 18, quality: 'auto', motion: !reducedMotion.matches, motionOverride: false };
+  const defaults = { enabled: true, bloom: 40, grain: 30, quality: 'auto', motion: !reducedMotion.matches, motionOverride: false };
   let stored = {};
   try { stored = JSON.parse(localStorage.getItem('orvyx-visual-studio-v1') || '{}'); } catch (_) {}
   let settings = { ...defaults, ...stored };
@@ -18,7 +18,8 @@
 
   function updateUI() {
     document.body.classList.toggle('finish-disabled', !settings.enabled || comparing);
-    document.documentElement.style.setProperty('--grain-opacity', settings.enabled && !comparing ? settings.grain / 750 : 0);
+    document.body.classList.toggle('ambient-paused', !settings.motion || reducedMotion.matches);
+    document.documentElement.style.setProperty('--grain-opacity', settings.enabled && !comparing ? Math.min(.035, settings.grain / 1500) : 0);
     if (!panel || !toggle) return;
     $('#finishToggle').checked = settings.enabled;
     $('#atmosphereRange').value = settings.bloom;

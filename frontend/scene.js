@@ -14,7 +14,7 @@ try {
 }
 
 if (renderer) {
-  let settings = { enabled: true, bloom: 35, grain: 18, quality: 'auto', motion: !matchMedia('(prefers-reduced-motion: reduce)').matches, ...window.ORVYX_SETTINGS };
+  let settings = { enabled: true, bloom: 40, grain: 30, quality: 'auto', motion: !matchMedia('(prefers-reduced-motion: reduce)').matches, ...window.ORVYX_SETTINGS };
   const gl = renderer.getContext();
   const debugRenderer = gl.getExtension('WEBGL_debug_renderer_info');
   const softwareRenderer = Boolean(debugRenderer && /swiftshader|llvmpipe|software/i.test(gl.getParameter(debugRenderer.UNMASKED_RENDERER_WEBGL)));
